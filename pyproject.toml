@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "ace-of-clust"
+version = "0.1.0"
+description = "ACE-OF-Clust: Alignment, Comparison, and Evaluation of Omics Features in Clustering"
+authors = ["Xiran Liu <xiran_liu1@brown.edu>"]
+readme = "README.md"
+license = "MIT"
+packages = [{ include = "ace_of_clust", from = "src" }]
+
+# Optional but nice if you plan to publish on PyPI
+homepage = "https://github.com/xr-cc/ace-of-clust"
+repository = "https://github.com/xr-cc/ace-of-clust"
+
+# If you have non-Python runtime assets, add include rules like:
+# include = [
+#   { path = "src/ace_of_clust/resources/*", format = "wheel" },
+#   { path = "src/ace_of_clust/resources/*", format = "sdist" }
+# ]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+
+# inferred from imports
+numpy = ">=1.21"
+pandas = ">=1.5"
+matplotlib = ">=3.5"
+seaborn = ">=0.12"
+clumppling = ">=2.0"
+
+# optional: your code already falls back if not installed
+adjustText = { version = ">=0.8", optional = true }
+
+[tool.poetry.extras]
+adjusttext = ["adjustText"]
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0"
+ruff = ">=0.6"
+
+# Optional: dependencies needed ONLY to run the examples
+[tool.poetry.group.examples]
+optional = true
+[tool.poetry.group.examples.dependencies]
+jupyter = "^1.0"
+notebook = "^7.0"
+# scanpy = "^1.10"   # if you need it, etc.
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
