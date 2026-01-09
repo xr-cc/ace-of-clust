@@ -23,51 +23,63 @@ pip install "ace-of-clust[adjusttext]"
 ```python
 from pathlib import Path
 
-from ace_of_clust.wrappers import (
-    run_clumppling_via_main,
-    prepare_comp_models_inputs,
-    run_comp_models,
-)
+import ace_of_clust as aoc
 
 # Example: run clumppling on an existing results directory / config
-res_dir = Path("output/clumppling_run")
-run_clumppling_via_main(res_dir=res_dir)
+cls_dir = Path("input/clustering_res")
+align_dir = Path("output/clumppling_run")
+aoc.run_clumppling_via_main(
+    input_dir=cls_dir,
+    output_dir=align_dir,
+    fmt="generalQ")
 
 # Example: prepare and run compModels (paths/args will depend on your pipeline)
-input_dir = Path("output/comp_models_inputs")
-prepare_comp_models_inputs(input_dir=input_dir)
+models = ['model1', 'model2']
+suffixes = ["rep", "rep"]
+model_dirs = [Path("output/clumppling_run_model_1") Path("output/clumppling_run_model_2")]
+model_comp_dir = Path("output/clumppling_models")
+qfilelists, qnamelists, mode_stats_files = aoc.prepare_comp_models_inputs(
+    models=models,
+    model_dirs=model_dirs,
+    comp_dir=model_comp_dir,
+    suffixes=suffixes,
+)
 
-run_comp_models(input_dir=input_dir, res_dir=Path("output/comp_models_results"))
+model_comp_output_dir = Path("output/aligned_models")
+aoc.run_comp_models(
+    models=models,
+    comp_dir=model_comp_dir,
+    output_dir=model_comp_output_dir)
+
 ```
 
-### Analysis helpers
+### Load, analyze, and visualize results
 
 ```python
 import pandas as pd
-from ace_of_clust.analysis import (
-    compute_profile,
-    extract_all_mode_pair_mappings,
-    map_alt_to_ref,
-    compute_overall_membership_difference,
+import ace_of_clust as aoc
+
+# load results
+comp_res = aoc.load_compmodels_results(
+    res_dir=model_comp_output_dir,
+    input_dir=model_comp_dir,
 )
 
-# Example placeholders: replace with your real objects / inputs
-# profile = compute_profile(...)
-# mappings = extract_all_mode_pair_mappings(...)
-# alt2ref = map_alt_to_ref(...)
-# diff = compute_overall_membership_difference(...)
-```
-
-### Plotting
-
-```python
-from ace_of_clust.plot import (
-    # add your main plotting entry points here
+# extract mode-pair mappings 
+pair_mappings = aoc.extract_all_mode_pair_mappings(
+    mode_names=comp_res.full_mode_names,
+    all_modes_alignment=comp_res.all_modes_alignment,
+    alignment_acrossK=comp_res.alignment_across_all,
 )
 
-# Example:
-# fig = plot_something(...)
-# fig.savefig("figures/example.png", dpi=200, bbox_inches="tight")
+# visualize cluster memberships (hard clustering)
+fig, ax = aoc.plot_compmodels_membership_grid(
+    comp_res,
+    coords, # coordinates for scatter plot
+    colors=colors,  # colors used for clusters
+    val_threshold=0.5, # only plot points with membership values above this threshold
+    suptitle="Cluster Memberships",
+)
 ```
 
 ## Reproducing examples
@@ -76,6 +88,6 @@ This repo keeps example scripts/notebooks separate from the installable library 
 To reproduce examples:
 
 1. Install the package (`pip install ace-of-clust`)
-2. Clone this repository (for `examples/`, `scripts/`, etc.)
+2. Clone this repository (for `examples/`, etc.)
 3. Run the example scripts while using the installed package.
 
