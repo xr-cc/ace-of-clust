@@ -1,5 +1,6 @@
 # Example data
 examples/data/**
+!examples/data/pbmc3k/
 !examples/data/pbmc3k/comp_models/
 !examples/data/pbmc3k/comp_models/**
 examples/data/pbmc3k/comp_models/*.zip

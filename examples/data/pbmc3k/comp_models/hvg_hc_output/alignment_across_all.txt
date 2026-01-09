@@ -1,0 +1,87 @@
+Mode1-Mode2,Cost,Alignment
+scanpy.leiden_K11M1-scanpy.leiden_K12M1,0.07202425898017438,1 2 3 4 5 6 7 8 9 10 11 3
+scanpy.leiden_K11M2-scanpy.leiden_K12M1,0.04738438092759668,1 2 3 4 5 6 7 8 9 10 11 3
+scanpy.louvain_K10M1-scanpy.leiden_K11M1,0.1554207697233132,3 4 2 8 5 10 6 1 7 6 9
+scanpy.leiden_K10M1-scanpy.leiden_K11M1,0.0818802103968537,1 2 3 4 5 6 7 8 9 10 2
+scanpy.leiden_K10M2-scanpy.leiden_K11M1,0.16527672097987117,1 2 3 4 5 6 7 8 9 10 2
+scanpy.louvain_K10M1-scanpy.leiden_K11M2,0.14670204361482186,3 4 2 8 5 10 6 1 7 6 9
+scanpy.leiden_K10M1-scanpy.leiden_K11M2,0.08870356126273692,1 2 3 4 5 6 7 8 9 10 2
+scanpy.leiden_K10M2-scanpy.leiden_K11M2,0.1648976459317666,1 2 3 4 5 6 7 8 9 10 2
+seurat.louvain_K9M1-scanpy.louvain_K10M1,0.13646701761038668,8 1 3 4 5 6 7 2 9 1
+seurat.louvain_K9M2-scanpy.louvain_K10M1,0.14215314331235787,8 1 3 4 5 6 7 2 9 1
+scanpy.louvain_K9M1-scanpy.louvain_K10M1,0.11106898933858986,1 2 3 4 5 6 7 8 9 2
+scanpy.louvain_K9M2-scanpy.louvain_K10M1,0.16376042114730863,1 9 3 4 5 6 7 8 4 2
+seurat.louvain_K9M1-scanpy.leiden_K10M1,0.12395754101376048,3 4 1 2 5 1 6 9 7 8
+seurat.louvain_K9M2-scanpy.leiden_K10M1,0.12736921642210008,3 4 1 2 5 1 6 9 7 8
+scanpy.louvain_K9M1-scanpy.leiden_K10M1,0.08870356146956028,3 4 2 8 5 2 6 1 7 9
+scanpy.louvain_K9M2-scanpy.leiden_K10M1,0.17664897288502654,3 4 2 8 5 2 6 1 7 9
+seurat.louvain_K9M1-scanpy.leiden_K10M2,0.1633813461083776,3 4 1 2 5 9 6 2 7 8
+seurat.louvain_K9M2-scanpy.leiden_K10M2,0.1933282750053829,3 4 1 2 5 9 6 2 7 8
+scanpy.louvain_K9M1-scanpy.leiden_K10M2,0.1766489728012131,3 4 2 8 5 2 6 1 7 9
+scanpy.louvain_K9M2-scanpy.leiden_K10M2,0.2270659543717589,3 4 2 8 5 2 6 1 7 9
+scanpy.tutorial_scanpy.tutorial-seurat.louvain_K9M1,0.061789233600151684,1 1 6 2 5 3 4 8 7
+scanpy.louvain_K8M1-seurat.louvain_K9M1,0.13949961832047014,2 8 3 4 5 6 7 6 1
+scanpy.tutorial_scanpy.tutorial-seurat.louvain_K9M2,0.05913570823176651,1 1 6 2 5 3 4 8 7
+scanpy.louvain_K8M1-seurat.louvain_K9M2,0.13646701791978783,2 8 3 4 5 6 7 6 1
+scanpy.tutorial_scanpy.tutorial-scanpy.louvain_K9M1,0.1721000738734648,7 1 6 2 5 3 4 1 8
+scanpy.louvain_K8M1-scanpy.louvain_K9M1,0.11675511536455653,1 2 3 4 5 6 7 8 6
+scanpy.tutorial_scanpy.tutorial-scanpy.louvain_K9M2,0.22365428097031845,8 1 6 2 5 3 4 7 1
+scanpy.louvain_K8M1-scanpy.louvain_K9M2,0.11561789024692955,1 2 3 4 5 6 7 8 8
+seurat.leiden_K7M1-scanpy.tutorial_scanpy.tutorial,0.25966641174340394,1 4 6 7 5 3 4 2
+seurat.leiden_K7M2-scanpy.tutorial_scanpy.tutorial,0.23313115798866554,1 4 6 7 5 3 4 2
+scanpy.louvain_K7M1-scanpy.tutorial_scanpy.tutorial,0.2763457141034493,1 4 6 7 5 3 4 2
+scanpy.louvain_K7M2-scanpy.tutorial_scanpy.tutorial,0.27369218872801343,1 4 6 7 5 3 4 2
+seurat.leiden_K7M1-scanpy.louvain_K8M1,0.05799848274738435,2 1 3 4 5 6 7 2
+seurat.leiden_K7M2-scanpy.louvain_K8M1,0.09021986207771036,2 1 3 4 5 6 7 2
+scanpy.louvain_K7M1-scanpy.louvain_K8M1,0.0754359350627748,1 2 3 4 5 6 7 1
+scanpy.louvain_K7M2-scanpy.louvain_K8M1,0.07846853546387413,1 2 3 4 5 6 7 1
+scanpy.leiden_K12M1-scanpy.leiden_K12M1,0.0,1 2 3 4 5 6 7 8 9 10 11 12
+scanpy.leiden_K11M1-scanpy.leiden_K11M1,0.0,1 2 3 4 5 6 7 8 9 10 11
+scanpy.leiden_K11M2-scanpy.leiden_K11M1,0.08150113525284307,1 2 3 4 5 6 7 8 9 10 11
+scanpy.leiden_K11M1-scanpy.leiden_K11M2,0.08150113525284307,1 2 3 4 5 6 7 8 9 10 11
+scanpy.leiden_K11M2-scanpy.leiden_K11M2,0.0,1 2 3 4 5 6 7 8 9 10 11
+scanpy.louvain_K10M1-scanpy.louvain_K10M1,0.0,1 2 3 4 5 6 7 8 9 10
+scanpy.leiden_K10M1-scanpy.louvain_K10M1,0.1182714151387415,8 3 1 2 5 7 9 4 10 6
+scanpy.leiden_K10M2-scanpy.louvain_K10M1,0.26648975911068984,8 3 1 2 5 7 9 4 10 6
+scanpy.louvain_K10M1-scanpy.leiden_K10M1,0.1182714151387415,3 4 2 8 5 10 6 1 7 9
+scanpy.leiden_K10M1-scanpy.leiden_K10M1,0.0,1 2 3 4 5 6 7 8 9 10
+scanpy.leiden_K10M2-scanpy.leiden_K10M1,0.2031842260075816,1 2 3 4 5 6 7 8 9 10
+scanpy.louvain_K10M1-scanpy.leiden_K10M2,0.26648975911068984,3 4 2 8 5 10 6 1 7 9
+scanpy.leiden_K10M1-scanpy.leiden_K10M2,0.2031842260075816,1 2 3 4 5 6 7 8 9 10
+scanpy.leiden_K10M2-scanpy.leiden_K10M2,0.0,1 2 3 4 5 6 7 8 9 10
+seurat.louvain_K9M1-seurat.louvain_K9M1,0.0,1 2 3 4 5 6 7 8 9
+seurat.louvain_K9M2-seurat.louvain_K9M1,0.043214555626535284,1 2 3 4 5 6 7 8 9
+scanpy.louvain_K9M1-seurat.louvain_K9M1,0.16262319617354065,2 8 3 4 5 6 7 9 1
+scanpy.louvain_K9M2-seurat.louvain_K9M1,0.2228961290210768,2 8 3 4 5 6 7 9 1
+seurat.louvain_K9M1-seurat.louvain_K9M2,0.043214555626535284,1 2 3 4 5 6 7 8 9
+seurat.louvain_K9M2-seurat.louvain_K9M2,0.0,1 2 3 4 5 6 7 8 9
+scanpy.louvain_K9M1-seurat.louvain_K9M2,0.16641394666709633,2 8 3 4 5 6 7 9 1
+scanpy.louvain_K9M2-seurat.louvain_K9M2,0.2210007537742988,2 8 3 4 5 6 7 9 1
+seurat.louvain_K9M1-scanpy.louvain_K9M1,0.16262319617354065,9 1 3 4 5 6 7 2 8
+seurat.louvain_K9M2-scanpy.louvain_K9M1,0.16641394666709633,9 1 3 4 5 6 7 2 8
+scanpy.louvain_K9M1-scanpy.louvain_K9M1,0.0,1 2 3 4 5 6 7 8 9
+scanpy.louvain_K9M2-scanpy.louvain_K9M1,0.19105382487520858,1 2 3 4 5 6 7 8 9
+seurat.louvain_K9M1-scanpy.louvain_K9M2,0.2228961290210768,9 1 3 4 5 6 7 2 8
+seurat.louvain_K9M2-scanpy.louvain_K9M2,0.2210007537742988,8 1 3 4 5 6 7 2 9
+scanpy.louvain_K9M1-scanpy.louvain_K9M2,0.19105382487520858,1 2 3 4 5 6 7 8 9
+scanpy.louvain_K9M2-scanpy.louvain_K9M2,0.0,1 2 3 4 5 6 7 8 9
+scanpy.tutorial_scanpy.tutorial-scanpy.tutorial_scanpy.tutorial,0.0,1 2 3 4 5 6 7 8
+scanpy.louvain_K8M1-scanpy.tutorial_scanpy.tutorial,0.2702805129473844,2 4 6 7 5 3 1 8
+scanpy.tutorial_scanpy.tutorial-scanpy.louvain_K8M1,0.2702805129473844,7 1 6 2 5 3 4 8
+scanpy.louvain_K8M1-scanpy.louvain_K8M1,0.0,1 2 3 4 5 6 7 8
+seurat.leiden_K7M1-seurat.leiden_K7M1,0.0,1 2 3 4 5 6 7
+seurat.leiden_K7M2-seurat.leiden_K7M1,0.04662623127589079,1 2 3 4 5 6 7
+scanpy.louvain_K7M1-seurat.leiden_K7M1,0.07657316030674748,2 1 3 4 5 6 7
+scanpy.louvain_K7M2-seurat.leiden_K7M1,0.06065200816376037,2 1 3 4 5 6 7
+seurat.leiden_K7M1-seurat.leiden_K7M2,0.04662623127589079,1 2 3 4 5 6 7
+seurat.leiden_K7M2-seurat.leiden_K7M2,0.0,1 2 3 4 5 6 7
+scanpy.louvain_K7M1-seurat.leiden_K7M2,0.1159969656131917,2 1 3 4 5 6 7
+scanpy.louvain_K7M2-seurat.leiden_K7M2,0.09325246255178155,2 1 3 4 5 6 7
+seurat.leiden_K7M1-scanpy.louvain_K7M1,0.07657316030674748,2 1 3 4 5 6 7
+seurat.leiden_K7M2-scanpy.louvain_K7M1,0.1159969656131917,2 1 3 4 5 6 7
+scanpy.louvain_K7M1-scanpy.louvain_K7M1,0.0,1 2 3 4 5 6 7
+scanpy.louvain_K7M2-scanpy.louvain_K7M1,0.05534495744943136,1 2 3 4 5 6 7
+seurat.leiden_K7M1-scanpy.louvain_K7M2,0.06065200816376037,2 1 3 4 5 6 7
+seurat.leiden_K7M2-scanpy.louvain_K7M2,0.09325246255178157,2 1 3 4 5 6 7
+scanpy.louvain_K7M1-scanpy.louvain_K7M2,0.05534495744943136,1 2 3 4 5 6 7
+scanpy.louvain_K7M2-scanpy.louvain_K7M2,0.0,1 2 3 4 5 6 7
