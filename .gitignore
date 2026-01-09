@@ -1,4 +1,6 @@
 examples/data/
+!examples/data/pbmc3k/comp_models/
+examples/data/pbmc3k/comp_models/*.zip
 __pycache__/
 dist/
 build/
