@@ -41,6 +41,7 @@ ruff = ">=0.6"
 [tool.poetry.group.examples]
 optional = true
 [tool.poetry.group.examples.dependencies]
+ipykernel = "^6.29"
 jupyter = "^1.0"
 notebook = "^7.0"
 # scanpy = "^1.10"   # if you need it, etc.

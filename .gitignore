@@ -1,2 +1,7 @@
 examples/data/
 __pycache__/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+tests/
