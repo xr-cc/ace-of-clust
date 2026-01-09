@@ -5,3 +5,7 @@ build/
 *.egg-info/
 .pytest_cache/
 tests/
+
+# MkDocs build output
+/site/
+

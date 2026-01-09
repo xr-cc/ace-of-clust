@@ -46,6 +46,14 @@ jupyter = "^1.0"
 notebook = "^7.0"
 # scanpy = "^1.10"   # if you need it, etc.
 
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.6.1"
+mkdocs-material = "^9.7.1"
+mkdocs-jupyter = "^0.25.1"
+mkdocs-autorefs = "^1.4.3"
+mkdocstrings = {markers = "python_version >= \"3.10\"", extras = ["python"], version = "^1.0.0"}
+
 [build-system]
 requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
