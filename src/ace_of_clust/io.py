@@ -26,6 +26,47 @@ GeneT = Tuple[int, int, str] # Gene tuple: (start, end, gene_name)
 class ClumpplingResults:
     """
     Container for all core clumppling outputs needed for analysis/plots.
+    Attributes
+    ----------
+    align_dir : Path
+        Directory containing clumppling outputs
+        (e.g. output/clumppling/pbmc10k-tutorial_hc_output).
+    suffix : str
+        Suffix used in aligned Q filenames (e.g. "rep" or "avg").
+    mode_alignment : pd.DataFrame   
+        DataFrame loaded from 'mode_alignment.txt'.
+    mode_stats : pd.DataFrame
+        DataFrame loaded from 'mode_stats.txt'.
+    modes : List[str]
+        Flat list of mode names (e.g. ["K5M1", "K5M2", ...]).
+    mode_K : Dict[str, int] 
+        Mapping from mode name to K for that mode.
+    K_range : List[int]
+        Sorted unique K values across all modes.
+    K_max : int
+        Maximum K value across all modes.
+    mode_names_list : List[List[str]]
+        Grouped mode names by K (same structure as notebook).
+    Q_by_mode : Dict[str, np.ndarray]
+        Mapping from mode name to aligned membership matrix.
+    alignment_acrossK : Dict[str, Sequence[int]]
+        {"A-B" -> mapping from B->A (original indices)}
+    cost_acrossK : Dict[str, float]
+        Mapping from mode name to alignment cost.
+    all_modes_alignment : Dict[str, Sequence[int]]
+        {mode_name -> reordering (aligned columns)}
+    mode_coord_dict : Dict[str, Tuple[int, int]]
+        {mode_name -> (row_idx, col_idx)} grid by K.
+    mode_sep_coord_dict : Dict[Tuple[str, int], Tuple[int, int]]
+        {(mode_name, cls_idx) -> (row_idx, col_idx)}.
+    input_meta : pd.DataFrame | None
+        DataFrame loaded from 'input_meta.txt', if available.
+    Q_unaligned_by_mode : Dict[str, np.ndarray] | None
+        {mode_name -> unaligned membership matrix}, if loaded.
+    P_unaligned_by_mode : Dict[str, np.ndarray] | None
+        {mode_name -> unaligned feature matrix}, if loaded.
+    P_aligned_by_mode : Dict[str, np.ndarray] | None
+        {mode_name -> aligned feature matrix}, if loaded.
     """
 
     # paths
@@ -886,6 +927,17 @@ def update_clumppling_with_alignment(
     ) -> ClumpplingResults:
     """
     Return a *new* ClumpplingResults with alignment updated.
+    Parameters
+    ----------
+    res : ClumpplingResults
+        Original results object.
+    alignment : dict
+        New alignment patterns per mode, e.g. {'K17M1': [2,0,1], ...}
+    Returns
+    -------
+    ClumpplingResults
+        New results object with updated Q_by_mode, P_aligned_by_mode,
+        and all_modes_alignment according to the new alignment.
     """
     # make sure all keys in alignment are in modes
     assert np.all([mode in res.modes for mode in alignment])
@@ -1226,6 +1278,9 @@ def build_peak_index(
 ) -> Tuple[Dict[str, List[Tuple[int, int]]], Dict[str, List[int]]]:
     """
     Build per-chromosome sorted intervals and start positions for fast overlap queries.
+    Parameters:
+        peaks: Iterable of peak strings, e.g. ['chr1:10109-10357', ...] 
+    
     Returns:
         intervals_by_chr: {chrom: [(start, end), ...] sorted by start}
         starts_by_chr:    {chrom: [start1, start2, ...] sorted}
@@ -1255,6 +1310,14 @@ def has_overlap(
     """
     Check if the interval (chrom, start, end) overlaps any peak interval.
     Uses binary search on sorted starts for efficiency.
+    Parameters:
+        chrom: chromosome name
+        start: interval start (0-based)
+        end:   interval end (0-based, exclusive)
+        intervals_by_chr: {chrom: [(start, end), ...] sorted by start}
+        starts_by_chr:    {chrom: [start1, start2, ...] sorted}
+    Returns:
+        True if overlap found, False otherwise.
     """
     if chrom not in intervals_by_chr:
         return False
@@ -1287,6 +1350,14 @@ def filter_bed_by_peaks_in_memory(
 ) -> Tuple[List[List[str]], Set[str]]:
     """
     Stream a BED file and keep only lines that overlap any of the given peaks.
+    Parameters
+    ----------
+    bed_path : str or Path
+        Path to the BED file to filter.
+    peaks : iterable of str
+        Iterable of peak strings, e.g. ['chr1:10109-10357', ...]
+    ccre_id_col : int, default 3
+        Column index (0-based) in the BED file where the cCRE ID is located.
 
     Returns
     -------
@@ -1331,6 +1402,16 @@ def filter_gene_links_by_ccre_ids_in_memory(
 ) -> Tuple[List[str] | None, List[List[str]]]:
     """
     Stream a gene-link file and keep only rows whose cCRE ID is in kept_ids.
+    Parameters
+    ----------
+    gene_links_path : str or Path
+        Path to the gene-link file to filter.
+    kept_ids : set of str
+        Set of cCRE IDs to keep.
+    ccre_id_col : int, default 0
+        Column index (0-based) in the gene-link file where the cCRE ID is located.
+    keep_header : bool, default True
+        Whether to keep and return the header line (first line) of the file.
 
     Returns
     -------
@@ -1368,3 +1449,23 @@ def filter_gene_links_by_ccre_ids_in_memory(
                 filtered_rows.append(fields)
 
     return header, filtered_rows
+
+
+__all__ = [
+    "load_mode_alignment",
+    "load_mode_stats",
+    "load_aligned_Qs",
+    "load_input_meta",
+    "load_unaligned_for_modes",
+    "load_alignment_across_k",
+    "load_all_modes_alignment",
+    "make_mode_names_list",
+    "infer_K_range_from_modes",
+    "load_clumppling_results",
+    "load_compmodels_results",
+    "update_clumppling_with_alignment",
+    "subset_compmodels_by_K",
+    "load_gene_intervals",
+    "filter_bed_by_peaks_in_memory",
+    "filter_gene_links_by_ccre_ids_in_memory",
+]

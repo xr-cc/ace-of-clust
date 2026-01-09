@@ -71,7 +71,7 @@ from .plot import (
     overlay_scatter_for_mode,
     plot_top_sepLFC_labels,
     plot_mode_metrics_sepCls,
-    plot_focal_gene_pvs_across_modes,
+    plot_selected_feature_pvs_across_modes,
     plot_feature_sepLFC_across_modes,
     plot_compmodels_membership_grid,
     plot_compmodels_membership_selected,
@@ -91,7 +91,7 @@ from .plot import (
     plot_structure_modes_two_level,
     plot_structure_modes_one_level,
     plot_spatial_and_structure_membership_grid,
-    plot_separated_clusters_for_focal_gene,
+    plot_separated_clusters_for_selected_feature,
 )
 
 __all__ = [
@@ -161,7 +161,7 @@ __all__ = [
     "overlay_scatter_for_mode",
     "plot_top_sepLFC_labels",
     "plot_mode_metrics_sepCls",
-    "plot_focal_gene_pvs_across_modes",
+    "plot_selected_feature_pvs_across_modes",
     "plot_feature_sepLFC_across_modes",
     "plot_compmodels_membership_grid",
     "plot_compmodels_membership_selected",
@@ -181,5 +181,5 @@ __all__ = [
     "plot_structure_modes_two_level",
     "plot_structure_modes_one_level",
     "plot_spatial_and_structure_membership_grid",
-    "plot_separated_clusters_for_focal_gene",
+    "plot_separated_clusters_for_selected_feature",
 ]

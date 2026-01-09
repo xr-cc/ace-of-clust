@@ -1,8 +1,10 @@
 # ACE-OF-Clust (`ace-of-clust`)
-ACE-OF-Clust (**A**lignment, **C**omparison, and **E**valutaion of **O**mics **F**eatures in **Clust**ing) is a small utility package built on top of [`clumppling`](https://pypi.org/project/clumppling/) to help run clustering-alignment workflows and compute downstream comparisons / summaries on single-cell omics clustering analyses.
+ACE-OF-Clust (**A**lignment, **C**omparison, and **E**valuation of **O**mics **F**eatures in **Clust**ering) is a Python package built on top of [`clumppling`](https://pypi.org/project/clumppling/) that streamlines clustering-alignment workflows and supports downstream comparisons, summaries, and feature-level analyses for single-cell omics clustering results.
 
 - **PyPI name (install):** `ace-of-clust`
 - **Python import (module):** `ace_of_clust`
+- **Current Version:** 0.1.0
+- **Release Date:** Jan 2026
 
 ## Installation
 

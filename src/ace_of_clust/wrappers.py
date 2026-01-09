@@ -243,6 +243,45 @@ def prepare_comp_models_inputs(
     """
     Prepare input files for clumppling.compModels from multiple aligned
     clumppling runs.
+    Parameters
+    ----------
+    models : sequence of str
+        Model names, e.g. ["model1", "model2"]. These will be used to name the
+        output qfilelist, qnamelist, and mode_stats.txt files.
+    model_dirs : sequence of path-like
+        Directories where each model's clumppling output lives. Each directory
+        should contain a subdirectory `modes_aligned_subdir` (default:
+        "modes_aligned") with the aligned Q files, and a file at
+        `mode_stats_relpath` (default: "modes/mode_stats.txt") with the mode
+        statistics.
+    comp_dir : path-like
+        Directory where the output qfilelist, qnamelist, and mode_stats.txt
+        files will be written.
+    suffixes : sequence of str or None, optional
+        Suffixes of the Q files for each model, either "rep" or "avg". 
+        If None (default), all models are assumed to use the suffix "rep". 
+        The length of this sequence must match the length of `models`.
+    modes_aligned_subdir : str, default "modes_aligned"
+        Subdirectory within each model_dir where the aligned Q files are stored.
+    mode_stats_relpath : str, default "modes/mode_stats.txt"
+        Relative path within each model_dir where the mode_stats.txt file is
+        located.
+    exist_ok : bool, default True
+        If True, do not raise an error if comp_dir already exists.
+    Returns
+    -------
+    qfilelists : list of Path
+        Paths to the generated qfilelist files, one per model.
+    qnamelists : list of Path
+        Paths to the generated qnamelist files, one per model.
+    mode_stats_files : list of Path
+        Paths to the copied mode_stats.txt files, one per model.
+    Raises
+    ------
+    ValueError
+        If the lengths of models, model_dirs, and suffixes do not match.
+    FileNotFoundError
+        If expected Q files or mode_stats.txt files are not found.  
     """
     models = list(models)
     model_dirs = [Path(d) for d in model_dirs]
@@ -432,3 +471,8 @@ def run_comp_models(
     # Call your patched compModels.main(args)
     compmodels_main(args)
 
+__all__ = [
+    "run_clumppling_via_main",
+    "prepare_comp_models_inputs",
+    "run_comp_models",
+]

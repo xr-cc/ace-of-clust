@@ -562,13 +562,9 @@ def map_alt_to_ref(
     ref_Q : np.ndarray
         Reference membership matrix (n_cells, ref_K).
     alt_Q : np.ndarray
-        Alternative membership matrix (n_cells, alt_K).
+        Alternative membership matrix (n_cells, alt_K), where ref_K <= alt_K.
     pair_mapping : Sequence[Tuple[int, int]]
         Mapping pairs (i_ref, j_alt) indicating how clusters in alt_Q map to clusters in ref_Q.
-
-    Assumes
-        ref_K <= alt_K
-        pair_mapping is (i_ref, j_alt)
 
     Returns
     -------
@@ -717,7 +713,7 @@ def get_compmodels_diff_matrices_against_ref(
     -------
     diff_by_model_mode : Dict[str, Dict[str, np.ndarray]]
         Nested dict:
-          diff_by_model_mode[model_name][short_mode] = diff_Q
+          `diff_by_model_mode[model_name][short_mode] = diff_Q`
 
         - `diff_Q` has shape (n_cells, K_eff), where K_eff is typically the smaller
           K between ref and current (as produced by map_alt_to_ref).
@@ -760,12 +756,12 @@ def get_compmodels_diff_matrices_against_ref(
 
         for mode_entry in mode_entries:
             full_name = _to_full_mode(model_name, str(mode_entry))
-            short_name = _short_mode(model_name, full_name)
+            short_mode = _short_mode(model_name, full_name)
 
             # Reference mode: diff is 0 by definition.
             if full_name == ref_mode:
                 diff_Q = np.zeros_like(ref_Q, dtype=float)
-                diff_by_model_mode[model_name][short_name] = diff_Q
+                diff_by_model_mode[model_name][short_mode] = diff_Q
                 continue
 
             # Get current Q and its K
@@ -796,7 +792,7 @@ def get_compmodels_diff_matrices_against_ref(
                 else:
                     _, diff_Q = map_alt_to_ref(Q, ref_Q, pair_mapping)
 
-            diff_by_model_mode[model_name][short_name] = diff_Q
+            diff_by_model_mode[model_name][short_mode] = diff_Q
 
     return diff_by_model_mode
 
@@ -916,6 +912,15 @@ def compute_annotation_group_sizes(
 ) -> pd.Series:
     """
     Compute group sizes as a sorted Series.
+    Parameters
+    ----------
+    annotation_labels
+        Per-cell labels (e.g., cell types, domains, batches).
+        Length must equal n_cells.
+    Returns
+    -------
+    pd.Series
+        index = group_label, value = size
     """
     group_indices = build_annotation_group_indices(annotation_labels)
     sizes = {g: len(idxs) for g, idxs in group_indices.items()}
@@ -1720,14 +1725,30 @@ def match_peaks_to_genes(
 ) -> List[str]:
     """
     Map each peak to overlapping gene(s).
-
-    Efficiency features:
-    - Streaming GTF load with early filters.
-    - Minimal attribute parsing.
-    - Per-chromosome sorted genes + sorted peaks.
-    - Two-pointer scan: ~O(#genes + #peaks) per chromosome.
-
-    Returns one label per input peak in the same order.
+    Parameters
+    ----------  
+    peaks
+        Iterable of peak strings like "chr1:819912-823500".
+    gtf_file
+        Path to GTF file.
+    upstream
+        Number of bases upstream of gene TSS to include.
+    downstream
+        Number of bases downstream of gene end to include.
+    feature_type
+        GTF feature type to use (e.g., "gene", "transcript").
+    source
+        GTF source to filter on (e.g., "HAVANA"), or None for no filtering.
+    gene_type_allowlist
+        Set of gene_type values to include, or None for no filtering.
+    intergenic_label
+        Label to assign to peaks with no overlapping genes.
+    unassigned_label
+        Label to assign to peaks on chromosomes not in the GTF.
+    Returns
+    -------
+    List[str]
+        List of gene name(s) per peak, or intergenic/unassigned labels.
     """
     peaks_list = list(peaks)
     n = len(peaks_list)
@@ -1809,6 +1830,20 @@ def peaks_with_top_gene_overlap(
 ):
     """
     For informative peaks, identify those overlapping top informative genes.
+    Parameters
+    ----------
+    df_informative_peaks_sorted
+        DataFrame of informative peaks, sorted by informativeness.
+    df_informative_genes_sorted
+        DataFrame of informative genes, sorted by informativeness.
+    n_top
+        Number of top features to consider. If None, use all.
+    mapped_col
+        Column in peaks DataFrame containing mapped gene names.
+    sep
+        Separator for multiple gene names in mapped_col.
+    drop_labels
+        Labels to exclude from consideration.
     """
     # Subset
     if n_top is None:
@@ -1850,7 +1885,21 @@ def peaks_with_top_gene_overlap(
 
 
 def make_col_unique(df, col, na_label: str = "NA"):
-    """Make entries in `col` unique by appending suffixes to duplicates."""
+    """
+    Make entries in `col` unique by appending suffixes to duplicates.
+    Parameters
+    ----------
+    df
+        Input DataFrame.
+    col
+        Column name to make unique.
+    na_label
+        Label to use for NaN entries.
+    Returns
+    -------
+    np.ndarray
+        Array of unique strings corresponding to df[col].
+    """
     dup_counts = df.groupby(col, dropna=False).cumcount()
 
     # Turn the column into strings, with a clean label for NaNs
@@ -1863,3 +1912,37 @@ def make_col_unique(df, col, na_label: str = "NA"):
         base + "_" + dup_counts.astype(str),
     )
     return unique_col
+
+
+__all__ = [
+    "subset_clumppling_results_by_modes",
+    "compute_profile",
+    "get_sepLFC_from_profile",
+    "get_wPsum_from_PQ",
+    "compute_feature_metrics_for_mode",
+    "compute_feature_metrics_all_modes",
+    "select_top_features_by_weighted_Psum",
+    "extract_all_mode_pair_mappings",
+    "map_alt_to_ref",
+    "compute_overall_membership_difference",
+    "compute_per_cell_membership_difference",
+    "get_compmodels_diff_matrices_against_ref",
+    "get_pairwise_diff_Q",
+    "get_pairwise_overall_membership_diff",
+    "build_annotation_group_indices",
+    "compute_annotation_group_sizes",
+    "compute_annotation_group_membership_difference",
+    "compute_mode_total_and_annotation_group_diffs",
+    "compute_modes_total_and_annotation_group_diffs",
+    "build_mode_annotation_group_diff_df",
+    "compute_avg_cluster_memberships",
+    "compute_FSTruct",
+    "compute_FSTruct_over_annotation_groups",
+    "compute_FStruct_over_models_and_annotation_groups",
+    "bootstrap_FSTruct_over_annotation_groups",
+    "bootstrap_FStruct_over_models_and_annotation_groups",
+    "build_mode_sizes_from_comp_res",
+    "match_peaks_to_genes",
+    "peaks_with_top_gene_overlap",
+    "make_col_unique",
+]

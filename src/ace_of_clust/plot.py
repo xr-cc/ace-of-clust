@@ -1734,10 +1734,10 @@ def plot_mode_metrics_sepCls(
     return g, ax
 
 
-def plot_focal_gene_pvs_across_modes(
+def plot_selected_feature_pvs_across_modes(
     df_pvs_modes: dict[str, pd.DataFrame],
     modes: list[str],
-    focal_gene: str,
+    selected_feature: str,
     custom_color_dict: dict[str, str],
     *,
     x_col="weighted_Psum",
@@ -1758,7 +1758,7 @@ def plot_focal_gene_pvs_across_modes(
     """
     res = []
     for mode_name in modes:
-        res.append(df_pvs_modes[mode_name].loc[focal_gene])
+        res.append(df_pvs_modes[mode_name].loc[selected_feature])
     df = pd.concat(res, axis=1).T
     df.index = modes  # mode names as index
 
@@ -1891,11 +1891,11 @@ def plot_feature_sepLFC_across_modes(
     df_pvs_modes
         Dict mapping mode_name -> DataFrame with columns ['sepLFC', 'sepCls'].
         Row order must align with `feature_names`.
-    focal_gene
-        Gene name to plot.
+    selected_feature
+        Feature name to plot.
     feature_names
-        Sequence of all feature/gene names; focal_gene must be in this list.
-    plot_colors
+        Sequence of all feature names; selected_feature must be in this list.
+    colors
         Sequence of colors indexed by cluster index (0-based).
     label_rank
         If True, annotate each bar with the rank of the focal gene by sepLFC.
@@ -2879,7 +2879,7 @@ def plot_multimodel_major_and_weighted_diff(
     mat_diffs : dict
         Nested dict of diff matrices, typically from
         get_compmodels_diff_matrices_against_ref:
-          mat_diffs[model_name][short_mode] = diff_Q
+          `mat_diffs[model_name][short_mode] = diff_Q`
         where diff_Q has shape (n_cells, K_eff).
     coords : array-like or (x, y)
         2D coordinates per cell. Either:
@@ -4208,7 +4208,7 @@ def plot_pair_mapping_alignment(
     alt_K: int,
     ref_mode: str,
     alt_mode: str,
-    plot_colors: Union[Sequence, Mapping[int, str]],
+    colors: Union[Sequence, Mapping[int, str]],
     figsize: Tuple[float, float] = (5, 2),
     dpi: int = 150,
     node_size: float = 150,
@@ -4231,7 +4231,7 @@ def plot_pair_mapping_alignment(
         Number of clusters in ref/alt spaces for x-limit.
     ref_mode, alt_mode
         Labels for y-axis and title.
-    plot_colors
+    colors
         Colors indexed by cluster id. Can be a list/tuple or dict.
     ax
         If provided, draws into existing axis.
@@ -4246,11 +4246,11 @@ def plot_pair_mapping_alignment(
         fig = ax.figure
 
     def _get_color(i: int):
-        if isinstance(plot_colors, Mapping):
-            return plot_colors.get(i, "grey")
+        if isinstance(colors, Mapping):
+            return colors.get(i, "grey")
         # sequence
-        if 0 <= i < len(plot_colors):
-            return plot_colors[i]
+        if 0 <= i < len(colors):
+            return colors[i]
         return "grey"
 
     # Draw connections + nodes
@@ -5175,11 +5175,11 @@ def plot_spatial_and_structure_membership_grid(
     return fig
 
 
-def plot_separated_clusters_for_focal_gene(
+def plot_separated_clusters_for_selected_feature(
     results,
     coords,
     df_pvs_modes: dict,
-    focal_gene: str,
+    selected_feature: str,
     *,
     modes=None,
     colors=None,
@@ -5201,14 +5201,14 @@ def plot_separated_clusters_for_focal_gene(
     coords : array-like
         (n_cells, 2) or (x, y) tuple for spatial / UMAP coordinates.
     df_pvs_modes : dict[str, pandas.DataFrame]
-        Mapping: mode_name -> DataFrame with index including `focal_gene`
+        Mapping: mode_name -> DataFrame with index including `selected_feature`
         and a column 'sepCls' that stores (group0, group1) lists
         of 0-based cluster indices.
-    focal_gene : str
-        Gene name / index key used in df_pvs_modes[mode].loc[focal_gene].
+    selected_feature : str
+        Feature name / index key used in df_pvs_modes[mode].loc[selected_feature].
     modes : sequence of str, optional
         Subset / order of modes to plot. Defaults to all keys in df_pvs_modes
-        that contain `focal_gene`.
+        that contain `selected_feature`.
     colors
         Either a sequence of colors indexable by cluster index, or a colormap.
         If None, defaults to tab20.
@@ -5241,24 +5241,23 @@ def plot_separated_clusters_for_focal_gene(
 
     # choose modes
     if modes is None:
-        # only modes where focal_gene exists in that df
+        # only modes where selected_feature exists in that df
         modes = [
             m for m, df in df_pvs_modes.items()
-            if focal_gene in df.index
+            if selected_feature in df.index
         ]
     else:
         modes = [
             m for m in modes
-            if m in df_pvs_modes and focal_gene in df_pvs_modes[m].index
+            if m in df_pvs_modes and selected_feature in df_pvs_modes[m].index
         ]
 
     if len(modes) == 0:
-        raise ValueError(f"No modes found with focal_gene '{focal_gene}'.")
-
-    # build a small DataFrame per focal_gene with sepCls etc.
+        raise ValueError(f"No modes found with selected_feature '{selected_feature}'.")
+    # build a small DataFrame per selected_feature with sepCls etc.
     data_rows = []
     for mode in modes:
-        sepCls = df_pvs_modes[mode].loc[focal_gene, "sepCls"]
+        sepCls = df_pvs_modes[mode].loc[selected_feature, "sepCls"]
         data_rows.append((mode, sepCls))
 
     sep_df = pd.DataFrame(data_rows, columns=["mode", "sepCls"]).set_index("mode")
@@ -5403,7 +5402,7 @@ def plot_separated_clusters_for_focal_gene(
                 axes[(mode_name, i_col)] = ax
 
         if suptitle is None:
-            suptitle = f"Separated clusters (fewer side) – {focal_gene}"
+            suptitle = f"Separated clusters (fewer side) – {selected_feature}"
         fig.suptitle(suptitle, y=0.98, fontsize=12)
         fig.tight_layout()
         return fig, axes
@@ -5520,8 +5519,50 @@ def plot_separated_clusters_for_focal_gene(
                 fig.add_artist(line)
 
     if suptitle is None:
-        suptitle = f"Separated clusters (both sides) – {focal_gene}"
+        suptitle = f"Separated clusters (both sides) – {selected_feature}"
     fig.suptitle(suptitle, y=0.96, fontsize=12)
     if not plot_both_sides:
         fig.tight_layout()
     return fig, axes
+
+
+__all__ = [
+    "plot_mode_Q_heatmap",
+    "plot_all_modes_Q_grid",
+    "plot_mode_cluster_bars",
+    "scatter_by_cluster",
+    "plot_single_spatial_membership",
+    "plot_feature_scatter",
+    "plot_feature_kde_with_outliers",
+    "get_feature_kde_outliers",
+    "plot_top_features_bar",
+    "plot_P_sorted",
+    "plot_mode_P_sorted",
+    "plot_mode_sepLFC_distribution",
+    "plot_single_cluster_in_grid",
+    "separate_scatter_for_cluster_mode",
+    "overlay_scatter_for_mode",
+    "plot_top_sepLFC_labels",
+    "plot_mode_metrics_sepCls",
+    "plot_selected_feature_pvs_across_modes",
+    "plot_feature_sepLFC_across_modes",
+    "plot_compmodels_membership_grid",
+    "plot_compmodels_membership_selected",
+    "plot_compmodels_diff_grid_against_ref",
+    "plot_compmodels_diff_selected_against_ref",
+    "plot_multimodel_major_and_weighted_diff",
+    "plot_compmodels_alignment_list",
+    "plot_compmodels_alignment_by_model",
+    "plot_discrete_colorbar",
+    "plot_mode_annotation_group_diff",
+    "plot_ref_alt_mapping_grid",
+    "plot_pair_mapping_alignment",
+    "plot_cross_model_membership_diff_heatmap",
+    "plot_multimodel_avg_membership_barh",
+    "plot_feature_count",
+    "plot_membership_clsind_reordered",
+    "plot_structure_modes_two_level",
+    "plot_structure_modes_one_level",
+    "plot_spatial_and_structure_membership_grid",
+    "plot_separated_clusters_for_selected_feature",
+]
