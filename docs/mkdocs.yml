@@ -23,7 +23,7 @@ nav:
   - Tutorials:
       - Quickstart: tutorials/quickstart.ipynb
       - Run Clumppling: tutorials/run_clumppling.md
-      - Hard Clustering Example: tutorials/hard_clustering_scRNAseq_example.ipynb
+      - Hard Clustering Example: tutorials/hard_clustering_model_comp_example.ipynb
   - Reference:
       - Overview: reference/index.md
       - Clumppling: reference/clumppling.md
