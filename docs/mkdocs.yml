@@ -24,7 +24,7 @@ nav:
       - Quickstart: tutorials/quickstart.ipynb
       - Toy Example: tutorials/toy_example.ipynb
       - Run Clumppling: tutorials/run_clumppling.md
-      - Real Data (Hard Clustering) Example: tutorials/hard_clustering_model_comp_example.ipynb
+      - Real Data (Hard Clustering) Example: tutorials/real_example.ipynb
   - Reference:
       - Overview: reference/index.md
       - Clumppling: reference/clumppling.md
