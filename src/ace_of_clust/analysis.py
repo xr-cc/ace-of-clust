@@ -198,6 +198,9 @@ def compute_profile(P: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         Indices of clusters sorted per feature (ascending).
     """
     K = P.shape[1]
+    # avoid P too close to 0
+    P = P + 1e-10
+    P = P/P.sum(axis=0, keepdims=True)
     P_sorted = np.sort(P, axis=1)
     idx_sorted = np.argsort(P, axis=1)
     # log2 ratio between consecutive sorted entries
@@ -293,7 +296,9 @@ def compute_feature_metrics_for_mode(
         raise ValueError(
             f"P.shape[0] ({P.shape[0]}) != len(feature_names) ({len(feature_names)})"
         )
-
+    # avoid log2(0)
+    if np.any(P < 0):
+        raise ValueError("P contains negative values; cannot compute log.")
     LFC_sorted, idx_sorted = compute_profile(P)
     sepLFC, sepCls = get_sepLFC_from_profile(LFC_sorted, idx_sorted)
     weighted_Psum = get_wPsum_from_PQ(P, Q)
