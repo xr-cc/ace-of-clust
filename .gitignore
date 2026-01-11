@@ -3,6 +3,11 @@ examples/data/**
 !examples/data/pbmc3k/
 !examples/data/pbmc3k/comp_models/
 !examples/data/pbmc3k/comp_models/**
+!examples/data/toy/
+!examples/data/toy/clustering/**
+!examples/data/toy/**
+examples/data/toy/aligned/
+examples/data/toy/comp_models/
 examples/data/pbmc3k/comp_models/*.zip
 
 __pycache__/

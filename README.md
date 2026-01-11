@@ -6,6 +6,9 @@ ACE-OF-Clust (**A**lignment, **C**omparison, and **E**valuation of **O**mics **F
 - **Current Version:** 0.1.0
 - **Release Date:** Jan 2026
 
+See [this doc site](https://xr-cc.github.io/ace-of-clust) for the tutorials and API reference for the package.
+
+
 ## Installation
 
 ```bash
@@ -46,7 +49,6 @@ qfilelists, qnamelists, mode_stats_files = aoc.prepare_comp_models_inputs(
     comp_dir=model_comp_dir,
     suffixes=suffixes,
 )
-
 model_comp_output_dir = Path("output/aligned_models")
 aoc.run_comp_models(
     models=models,
@@ -55,7 +57,7 @@ aoc.run_comp_models(
 
 ```
 
-### Load, analyze, and visualize results
+### Load, analyze, and visualize results (compmodels)
 
 ```python
 import pandas as pd
