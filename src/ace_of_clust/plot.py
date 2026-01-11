@@ -476,15 +476,16 @@ def plot_feature_scatter(
 
     if highlight is not None:
         highlight = list(highlight)
-        for gene in highlight:
-            if gene in df.index:
+        for feature in highlight:
+            if feature in df.index:
                 ax.annotate(
-                    gene,
-                    (df.loc[gene, x], df.loc[gene, y]),
+                    feature,
+                    (df.loc[feature, x], df.loc[feature, y]),
                     xytext=(3, 3),
                     textcoords="offset points",
                     fontsize=8,
                 )
+                ax.scatter(df.loc[feature, x], df.loc[feature, y], s=10, color='red')
 
     return fig, ax
 
@@ -680,7 +681,7 @@ def get_feature_kde_outliers(
     """
     KDE-based outlier detection, with optional ranking of top_n most extreme points.
 
-    Outlier definition (unchanged):
+    Outlier definition:
       - Fit 2D KDE on (x_col, y_col) for eligible points
       - Find points outside outermost contour
 
@@ -689,6 +690,26 @@ def get_feature_kde_outliers(
       - scale="zscore": standardize by mean & std
       - scale="robust": standardize by median & IQR
       - scale="none": use raw (x, y)
+
+    Parameters
+    ----------
+    df : DataFrame
+        Must contain columns `x_col` and `y_col`.
+    x_col, y_col : str
+        Column names in df to use as x and y axes.
+    min_x : float or None, default 0.0
+        Minimum x value for eligibility; points with x <= min_x are ignored.
+        If None, all finite points are eligible.
+    levels : int, default 8
+        Number of KDE contour levels.
+    cut : float, default 0
+        KDE cut parameter (see seaborn.kdeplot).
+    top_n : int or None, default None
+        If not None, return only the top_n most extreme outliers.
+    scale : {"none", "zscore", "robust"}, default "zscore"
+        Scaling method for distance computation when ranking outliers.
+    return_mask : bool, default False
+        If True, also return a boolean mask aligned to df.index indicating outlier status.
 
     Returns
     -------
@@ -861,9 +882,22 @@ def plot_P_sorted(
     LFC_sorted: np.ndarray,
     ax: plt.Axes | None = None,
     title: str = "",
+    lw: float = 0.2,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
-    Plot sorted log2(P) along cluster index, coloring each gene's curve by the argmax of its LFC profile
+    Plot sorted log2(P) along cluster index, coloring each gene's curve by the argmax of its LFC profile.
+    Parameters
+    ----------
+    P_sorted : ndarray
+        (M, K) array of sorted P values per gene.
+    LFC_sorted : ndarray    
+        (M, K) array of log fold change values per gene.
+    ax : Axes, optional
+        If given, draw into this Axes.
+    title : str, optional
+        Title for the plot.
+    lw : float, default 0.2
+        Line width for each gene's curve.
     """
     if ax is None:
         fig, ax = plt.subplots(figsize=(4, 2.5), dpi=150)
@@ -876,7 +910,7 @@ def plot_P_sorted(
         color_idx = int(np.argmax(LFC_sorted[i_g, :]))
         ax.plot(
             np.log2(P_sorted[i_g, :]),
-            lw=0.2,
+            lw=lw,
             alpha=0.1,
             color=f"C{color_idx}",
         )
@@ -902,6 +936,7 @@ def plot_mode_P_sorted(
     mode_name: str,
     ax: plt.Axes | None = None,
     title: str | None = None,
+    lw: float = 0.2,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
     For a single mode, compute the clustering profile and plot sorted log P.
@@ -915,6 +950,7 @@ def plot_mode_P_sorted(
         LFC_sorted,
         ax=ax,
         title=mode_name if title is None else title,
+        lw=lw,
     )
 
     ax.set_xlabel("Index of sorted clusters")
@@ -1857,12 +1893,13 @@ def plot_selected_feature_pvs_across_modes(
             )
         labels.append(ax.text(x, y, lb, color="k", fontsize=10))
 
-    adjust_text(
-        labels,
-        expand_points=(2, 2),
-        arrowprops=dict(arrowstyle="-", color="red", lw=0.5),
-        ax=ax,
-    )
+    if adjust_text is not None:
+        adjust_text(
+            labels,
+            expand_points=(2, 2),
+            arrowprops=dict(arrowstyle="-", color="red", lw=0.5),
+            ax=ax,
+        )
 
     return fig, ax, df
 
