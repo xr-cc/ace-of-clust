@@ -1,14 +1,25 @@
 # Example data
-examples/data/**
+examples/data/*
 !examples/data/pbmc3k/
-!examples/data/pbmc3k/comp_models/
-!examples/data/pbmc3k/comp_models/**
 !examples/data/toy/
-!examples/data/toy/clustering/**
+
+# pbmc3k: keep only selected subdirectories
+examples/data/pbmc3k/*
+!examples/data/pbmc3k/comp_models/
+!examples/data/pbmc3k/clustering/
+
+examples/data/pbmc3k/comp_models/*
+!examples/data/pbmc3k/comp_models/**
+examples/data/pbmc3k/comp_models/*.zip
+
+examples/data/pbmc3k/clustering/*
+!examples/data/pbmc3k/clustering/hvg_hc/
+!examples/data/pbmc3k/clustering/hvg_hc/**
+
+# toy: keep everything except generated outputs
 !examples/data/toy/**
 examples/data/toy/aligned/
 examples/data/toy/comp_models/
-examples/data/pbmc3k/comp_models/*.zip
 
 __pycache__/
 dist/
@@ -19,4 +30,3 @@ tests/
 
 # MkDocs build output
 /site/
-
