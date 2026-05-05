@@ -19,7 +19,7 @@ model_dirs = [
 ]
 
 # 1) Prepare qfilelist / qnamelist / mode_stats files
-qfilelists, qnamelists, mode_stats_files = aoc.prepare_comp_models_inputs(
+qfilelists, qnamelists, mode_stats_files = aoc.prepare_compmodels(
     models=models,
     model_dirs=model_dirs,
     comp_dir=model_comp_dir,

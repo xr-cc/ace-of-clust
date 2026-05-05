@@ -1,32 +1,88 @@
-# Example data
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+.installed.cfg
+pip-wheel-metadata/
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Testing & coverage ────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# ── MkDocs build ─────────────────────────────────────────────────────────────
+/site/
+
+# ── Project cache & logs ──────────────────────────────────────────────────────
+/cache/
+/log/
+
+# ── Example figures (generated outputs) ──────────────────────────────────────
+examples/figures/
+
+# ── Example results (papermill outputs) ──────────────────────────────────────
+examples/results/
+
+# ── Example data: exclude everything, then selectively allow ─────────────────
 examples/data/*
 !examples/data/pbmc3k/
 !examples/data/toy/
 
-# pbmc3k: keep only selected subdirectories
+# hbc: excluded entirely
+examples/data/hbc/
+
+# pbmc3k: exclude generated/large subdirs, keep source inputs
 examples/data/pbmc3k/*
-!examples/data/pbmc3k/comp_models/
 !examples/data/pbmc3k/clustering/
+examples/data/pbmc3k/clustering/hvg_hc_test/
+!examples/data/pbmc3k/aligned/
+!examples/data/pbmc3k/comp_models/
+!examples/data/pbmc3k/gene_sets/B_cell_program.txt
+!examples/data/pbmc3k/reference/
+!examples/data/pbmc3k/scanpy_tutorial_labels.txt
+!examples/data/pbmc3k/scanpy_tutorial_umap.txt
 
-examples/data/pbmc3k/comp_models/*
-!examples/data/pbmc3k/comp_models/**
-examples/data/pbmc3k/comp_models/*.zip
+examples/data/pbmc3k/comp_models_old/
+examples/data/pbmc3k/copied/
+examples/data/pbmc3k/full_align/
+examples/data/pbmc3k/hvg_align/
+examples/data/pbmc3k/**/*.zip
+examples/data/pbmc3k/*.zip
 
-examples/data/pbmc3k/clustering/*
-!examples/data/pbmc3k/clustering/hvg_hc/
-!examples/data/pbmc3k/clustering/hvg_hc/**
+# pbmc3k/clustering: keep source Q files, exclude logs and test subdir
+examples/data/pbmc3k/clustering/*.log
+examples/data/pbmc3k/clustering/test/
 
-# toy: keep everything except generated outputs
-!examples/data/toy/**
+# pbmc3k/aligned: exclude test subdir
+examples/data/pbmc3k/aligned/test/
+
+# pbmc3k/comp_models: exclude test subdir
+examples/data/pbmc3k/comp_models/test/
+
+# toy: keep source files, exclude generated alignment/compModels outputs
+examples/data/toy/*
+!examples/data/toy/X.txt
+!examples/data/toy/ground_truth.Q
+!examples/data/toy/clustering/
+
 examples/data/toy/aligned/
 examples/data/toy/comp_models/
 
-__pycache__/
-dist/
-build/
-*.egg-info/
-.pytest_cache/
-tests/
-
-# MkDocs build output
-/site/
+# hbc: exclude for now
+examples/hbc_st_*

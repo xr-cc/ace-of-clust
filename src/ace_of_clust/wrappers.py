@@ -5,14 +5,14 @@ Python wrapper(s) around the clumppling CLI.
 
 Usage
 -----
-run_clumppling_via_main(
+run_clumppling(
     input_dir="/path/to/input",
     output_dir="/path/to/output",
     fmt="generalQ",
     ...
 )
 
-prepare_comp_models_inputs(
+prepare_compmodels(
     models=["model1", "model2"],
     model_dirs=["/path/to/model1_dir", "/path/to/model2_dir"],
     comp_dir="/path/to/comp_dir",
@@ -119,7 +119,7 @@ def _build_clumppling_args(
     return args
 
 
-def run_clumppling_via_main(
+def run_clumppling(
     input_dir: PathLike,
     output_dir: PathLike,
     fmt: str = "generalQ",
@@ -230,7 +230,7 @@ def run_clumppling_via_main(
     return args
 
 
-def prepare_comp_models_inputs(
+def prepare_compmodels(
     models: Sequence[str],
     model_dirs: Sequence[str | Path],
     comp_dir: str | Path,
@@ -472,7 +472,7 @@ def run_comp_models(
     compmodels_main(args)
 
 __all__ = [
-    "run_clumppling_via_main",
-    "prepare_comp_models_inputs",
+    "run_clumppling",
+    "prepare_compmodels",
     "run_comp_models",
 ]
