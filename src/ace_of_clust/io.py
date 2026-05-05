@@ -278,7 +278,7 @@ def load_mode_stats(align_dir: PathLike) -> pd.DataFrame:
     return pd.read_csv(fname)
 
 
-def get_mode_names(mode_alignment: pd.DataFrame) -> List[str]:
+def _get_mode_names(mode_alignment: pd.DataFrame) -> List[str]:
     """
     Extract the list of unique mode names from mode_alignment.
 
@@ -346,7 +346,8 @@ def load_unaligned_for_modes(
     modes: Sequence[str] | None = None,
     mode_stats: pd.DataFrame | None = None,
     input_meta: pd.DataFrame | None = None,
-    delimiter: str = " ",
+    delimiter: str | None = None,
+    p_ext: str | None = None,
 ) -> Dict[str, np.ndarray]:
     """
     Load the unaligned P matrices for each mode.
@@ -367,8 +368,18 @@ def load_unaligned_for_modes(
         If already loaded, pass it to avoid re-reading.
     input_meta : pd.DataFrame, optional
         If already loaded, pass it to avoid re-reading.
-    delimiter : str, default " "
-        Delimiter for the P files.
+    delimiter : str or None, default None
+        Delimiter for the matrix files. ``None`` (default) splits on any
+        whitespace, which correctly handles both single- and double-space
+        separated outputs (e.g. fastStructure ``meanP``/``meanQ`` files).
+    p_ext : str, optional
+        Extension to use for P files when ``mat_type="P"``.  When set, the
+        extension already present on ``orig_file_name`` (e.g. ``.meanQ`` for
+        fastStructure) is stripped via ``Path.stem`` and replaced with this
+        value.  For example, pass ``p_ext="meanP"`` for fastStructure runs
+        whose P files end in ``.meanP``.  If *None* (default), the old
+        behaviour is preserved: ``mat_type`` is appended directly to
+        ``orig_file_name``.
 
     Returns
     -------
@@ -382,7 +393,7 @@ def load_unaligned_for_modes(
         mode_stats = load_mode_stats(align_dir)
     if modes is None:
         mode_alignment = load_mode_alignment(align_dir)
-        modes = get_mode_names(mode_alignment)
+        modes = _get_mode_names(mode_alignment)
     if input_meta is None:
         input_meta = load_input_meta(align_dir)
 
@@ -394,7 +405,13 @@ def load_unaligned_for_modes(
         # Original Q/P file stem for that representative
         orig_file_name = input_meta.loc[input_meta["Mode_Name"] == repr_name, "Orig_File"].values[0]
 
-        mat_path = cls_dir / f"{orig_file_name}.{mat_type}"
+        if mat_type == "P" and p_ext is not None:
+            # orig_file_name may include the Q extension (e.g. "run.meanQ");
+            # strip it and substitute the caller-supplied P extension.
+            base = Path(orig_file_name).stem
+            mat_path = cls_dir / f"{base}.{p_ext}"
+        else:
+            mat_path = cls_dir / f"{orig_file_name}.{mat_type}"
         if not mat_path.exists():
             raise FileNotFoundError(f"Unaligned {mat_type} file not found: {mat_path}")
 
@@ -423,7 +440,7 @@ def load_aligned_Qs(
     align_dir : path-like
         Main clumppling output directory (same as used in load_mode_alignment).
     modes : sequence of str
-        Mode names to load, e.g. from get_mode_names(...).
+        Mode names to load, e.g. from _get_mode_names(...).
     suffix : {"rep", "avg"}, default "rep"
         Suffix used by clumppling when writing aligned modes.
     delimiter : str, default " "
@@ -449,7 +466,7 @@ def load_aligned_Qs(
     return Q_by_mode
 
 
-def load_alignment_across_k(
+def load_alignment_across_K(
     align_file: str | PathLike,
 ) -> Tuple[Dict[str, Sequence[int]], Dict[str, float]]:
     """
@@ -545,7 +562,7 @@ def load_all_modes_alignment(
     return all_modes_alignment
 
 
-def make_mode_names_list(mode_names: Sequence[str]) -> List[List[str]]:
+def group_modes_by_K(mode_names: Sequence[str]) -> List[List[str]]:
     """
     Group a flat list of mode names into a list-of-lists by K.
 
@@ -578,7 +595,7 @@ def make_mode_names_list(mode_names: Sequence[str]) -> List[List[str]]:
     return [groups[k] for k in sorted(groups.keys())]
 
 
-def infer_K_range_from_modes(mode_names: Sequence[str]) -> List[int]:
+def infer_K_range(mode_names: Sequence[str]) -> List[int]:
     """
     Convenience helper to get sorted K values from mode names.
 
@@ -606,6 +623,7 @@ def load_clumppling_results(
     load_unaligned: bool = False,
     load_P: bool = True,
     strict_P: bool = False,
+    p_ext: str | None = None,
 ) -> ClumpplingResults:
     """
     Load clumppling results from the specified directory.
@@ -628,6 +646,12 @@ def load_clumppling_results(
     strict_P : bool, default False
         If True, missing P files raise FileNotFoundError.
         If False, missing P files will emit a warning and skip P loading.
+    p_ext : str, optional
+        File extension for P matrices.  Use this when the tool writes P files
+        with a non-standard extension, e.g. ``p_ext="meanP"`` for
+        fastStructure (whose P files end in ``.meanP`` rather than ``.P``).
+        When *None* (default), the extension is derived from ``mat_type``
+        as before.
     """
     align_dir = Path(align_dir)
 
@@ -635,7 +659,7 @@ def load_clumppling_results(
     mode_alignment = load_mode_alignment(align_dir)
     mode_stats = load_mode_stats(align_dir)
 
-    modes = get_mode_names(mode_alignment)  # e.g. ["K17M1", "K17M2", "K18M1", ...]
+    modes = _get_mode_names(mode_alignment)  # e.g. ["K17M1", "K17M2", "K18M1", ...]
 
     Q_by_mode = load_aligned_Qs(align_dir, modes=modes, suffix=suffix)
     mode_K: Dict[str, int] = {m: Q.shape[1] for m, Q in Q_by_mode.items()}
@@ -645,12 +669,12 @@ def load_clumppling_results(
 
     K_max = max(mode_K.values()) if mode_K else 0
 
-    mode_names_list = make_mode_names_list(modes)
-    K_range = infer_K_range_from_modes(modes)
+    mode_names_list = group_modes_by_K(modes)
+    K_range = infer_K_range(modes)
 
     # --- load alignment information ----------------------------------
     align_file = align_dir / "alignment_acrossK" / f"alignment_acrossK_{suffix}.txt"
-    alignment_acrossK, cost_acrossK = load_alignment_across_k(align_file=align_file)
+    alignment_acrossK, cost_acrossK = load_alignment_across_K(align_file=align_file)
     all_modes_alignment = load_all_modes_alignment(align_dir, suffix=suffix)
 
     # --- layout dicts for plotting -----------------------------------
@@ -693,6 +717,7 @@ def load_clumppling_results(
                     modes=modes,
                     mode_stats=mode_stats,
                     input_meta=input_meta,
+                    p_ext=p_ext,
                 )
                 # align P matrices using the same column reordering as Q
                 P_aligned_by_mode = {}
@@ -873,7 +898,7 @@ def load_compmodels_results(
 
     # Load cross-mode alignment/cost slots.
     align_file = res_dir / "alignment_across_all.txt"
-    alignment_across_all, cost_across_all = load_alignment_across_k(align_file=align_file)
+    alignment_across_all, cost_across_all = load_alignment_across_K(align_file=align_file)
 
     # Load per-model mode_stats from input_dir, if provided
     mode_stats_by_model: Dict[str, pd.DataFrame] = {}
@@ -921,7 +946,7 @@ def load_compmodels_results(
     )
 
 
-def update_clumppling_with_alignment(
+def add_pairwise_alignment(
     res: ClumpplingResults, 
     alignment: Dict[str, Sequence[int]]
     ) -> ClumpplingResults:
@@ -1008,7 +1033,7 @@ def update_clumppling_with_alignment(
     return new_res
 
 
-def subset_compmodels_by_K(
+def subset_compmodels(
     comp_res: CompModelsResults,
     K_min: Optional[int] = None,
     K_max: Optional[int] = None,
@@ -1062,7 +1087,7 @@ def subset_compmodels_by_K(
 
     if not kept_full_modes:
         raise ValueError(
-            "subset_compmodels_by_K: no modes remain after K filtering. "
+            "subset_compmodels: no modes remain after K filtering. "
             "Check K_min/K_max or K_values."
         )
 
@@ -1091,7 +1116,7 @@ def subset_compmodels_by_K(
 
     if not models_sub:
         raise ValueError(
-            "subset_compmodels_by_K: no models have any modes left after K filtering."
+            "subset_compmodels: no models have any modes left after K filtering."
         )
 
     # keep full_mode_names in original order
@@ -1197,6 +1222,39 @@ def _extract_attr(attr: str, key: str) -> Optional[str]:
     return attr[i:j]
 
 
+def load_gene_set(
+    name: str,
+    gene_set_dir: PathLike,
+    *,
+    prefix: str | None = None,
+) -> List[str]:
+    """
+    Load a gene-set file (one symbol per line) from a directory.
+
+    Parameters
+    ----------
+    name : str
+        Gene-set name, used as the file stem (e.g. ``"HALLMARK_E2F_TARGETS"``
+        or just ``"E2F_TARGETS"`` when ``prefix="HALLMARK_"``).
+    gene_set_dir : path-like
+        Directory containing ``.txt`` gene-set files.
+    prefix : str, optional
+        If provided and ``name`` does not already start with it, the prefix is
+        prepended before constructing the filename.  Useful for MSigDB Hallmark
+        collections where files are named ``HALLMARK_<name>.txt``.
+
+    Returns
+    -------
+    list of str
+        Gene symbols, one per line, with blank lines removed.
+    """
+    gene_set_dir = Path(gene_set_dir)
+    if prefix is not None and not name.startswith(prefix):
+        name = prefix + name
+    lines = (gene_set_dir / f"{name}.txt").read_text().splitlines()
+    return [ln for ln in lines if ln.strip()]
+
+
 def load_gene_intervals(
     gtf_file: str,
     *,
@@ -1264,7 +1322,7 @@ def load_gene_intervals(
     return gtf
 
 
-def parse_peak_string(peak: str) -> Tuple[str, int, int]:
+def _parse_peak_string(peak: str) -> Tuple[str, int, int]:
     """
     'chr1:10109-10357' -> ('chr1', 10109, 10357)
     """
@@ -1273,7 +1331,7 @@ def parse_peak_string(peak: str) -> Tuple[str, int, int]:
     return chrom, int(start), int(end)
 
 
-def build_peak_index(
+def _build_peak_index(
     peaks: Iterable[str],
 ) -> Tuple[Dict[str, List[Tuple[int, int]]], Dict[str, List[int]]]:
     """
@@ -1288,7 +1346,7 @@ def build_peak_index(
     intervals_by_chr: Dict[str, List[Tuple[int, int]]] = {}
 
     for s in peaks:
-        chrom, start, end = parse_peak_string(s)
+        chrom, start, end = _parse_peak_string(s)
         intervals_by_chr.setdefault(chrom, []).append((start, end))
 
     # sort per chromosome
@@ -1300,7 +1358,7 @@ def build_peak_index(
     return intervals_by_chr, starts_by_chr
 
 
-def has_overlap(
+def _has_overlap(
     chrom: str,
     start: int,
     end: int,
@@ -1342,7 +1400,7 @@ def has_overlap(
     return False
 
 
-def filter_bed_by_peaks_in_memory(
+def filter_bed_by_peaks(
     bed_path: str | Path,
     peaks: Iterable[str],
     *,
@@ -1366,7 +1424,7 @@ def filter_bed_by_peaks_in_memory(
     kept_ids : set of str
         Set of cCRE IDs (from column `ccre_id_col`) for filtered rows.
     """
-    intervals_by_chr, starts_by_chr = build_peak_index(peaks)
+    intervals_by_chr, starts_by_chr = _build_peak_index(peaks)
 
     bed_path = Path(bed_path)
     filtered_rows: List[List[str]] = []
@@ -1385,7 +1443,7 @@ def filter_bed_by_peaks_in_memory(
             start = int(fields[1])
             end = int(fields[2])
 
-            if has_overlap(chrom, start, end, intervals_by_chr, starts_by_chr):
+            if _has_overlap(chrom, start, end, intervals_by_chr, starts_by_chr):
                 filtered_rows.append(fields)
                 if len(fields) > ccre_id_col:
                     kept_ids.add(fields[ccre_id_col])
@@ -1393,7 +1451,7 @@ def filter_bed_by_peaks_in_memory(
     return filtered_rows, kept_ids
 
 
-def filter_gene_links_by_ccre_ids_in_memory(
+def filter_gene_links_by_ccre(
     gene_links_path: str | Path,
     kept_ids: Set[str],
     *,
@@ -1457,15 +1515,16 @@ __all__ = [
     "load_aligned_Qs",
     "load_input_meta",
     "load_unaligned_for_modes",
-    "load_alignment_across_k",
+    "load_alignment_across_K",
     "load_all_modes_alignment",
-    "make_mode_names_list",
-    "infer_K_range_from_modes",
+    "group_modes_by_K",
+    "infer_K_range",
     "load_clumppling_results",
     "load_compmodels_results",
-    "update_clumppling_with_alignment",
-    "subset_compmodels_by_K",
+    "add_pairwise_alignment",
+    "subset_compmodels",
+    "load_gene_set",
     "load_gene_intervals",
-    "filter_bed_by_peaks_in_memory",
-    "filter_gene_links_by_ccre_ids_in_memory",
+    "filter_bed_by_peaks",
+    "filter_gene_links_by_ccre",
 ]

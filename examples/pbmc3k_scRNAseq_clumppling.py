@@ -17,7 +17,7 @@ for method_lb in ["seurat_louvain", "seurat_leiden", "scanpy_louvain", "scanpy_l
     align_dir = example_data_dir / "aligned" / "hvg_hc" / method_lb
 
     # --- call clumppling via the wrapper ----------------------------------------
-    aoc.run_clumppling_via_main(
+    aoc.run_clumppling(
         input_dir=cls_dir,
         output_dir=align_dir,
         fmt="generalQ",                    # -f generalQ
@@ -42,7 +42,7 @@ for method_lb in ["seurat_louvain", "seurat_leiden", "scanpy_louvain", "scanpy_l
 # align_dir = example_data_dir / "aligned" / "full_mmc"
 
 # # --- call clumppling via the wrapper ----------------------------------------
-# aoc.run_clumppling_via_main(
+# aoc.run_clumppling(
 #     input_dir=cls_dir,
 #     output_dir=align_dir,
 #     fmt="generalQ",                    # -f generalQ
