@@ -7,6 +7,7 @@ Welcome! This site contains tutorials and API reference for `ace_of_clust`.
 
 - Start with the **Quickstart** or **Toy Example** tutorial.
 - See **Reference** for function/class docs.
+- View the source on [GitHub](https://github.com/xr-cc/ace-of-clust).
 
 ## Tutorials
 

@@ -8,6 +8,10 @@ ACE-OF-Clust (**A**lignment, **C**omparison, and **E**valuation of **O**mics **F
 
 See [this doc site](https://xr-cc.github.io/ace-of-clust) for the tutorials and API reference for the package.
 
+## Preprint
+
+Liu, X., et al. (2026). ACE-OF-Clust: Alignment, Comparison, and Evaluation of Omics Features in Clustering. <https://doi.org/10.64898/2026.03.09.710668>
+
 
 ## Installation
 
