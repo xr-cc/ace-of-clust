@@ -24,7 +24,8 @@ nav:
       - Quickstart: tutorials/quickstart.ipynb
       - Toy Example: tutorials/toy_example.ipynb
       - Run Clumppling: tutorials/run_clumppling.md
-      - Real Data (Hard Clustering) Example: tutorials/real_example.ipynb
+      - PBMC3K Hard Clustering Example: tutorials/ex1_pbmc3k_hc.ipynb
+      - HBC Spatial Transcriptomics Mixed-Membership Clustering Example: tutorials/ex2_hbc_mmc.ipynb
   - Reference:
       - Overview: reference/index.md
       - Clumppling: reference/clumppling.md
