@@ -1,6 +1,6 @@
 site_name: ACE-OF-Clust
-theme:
-  name: material
+repo_url: https://github.com/xr-cc/ace-of-clust
+repo_name: xr-cc/ace-of-clust
 
 docs_dir: .
 site_dir: ../site
