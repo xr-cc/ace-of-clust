@@ -1,0 +1,3773 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../clumppling/">
+      
+      
+        <link rel="next" href="../analysis/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>I/O - ACE-OF-Clust</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#io" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ACE-OF-Clust" class="md-header__button md-logo" aria-label="ACE-OF-Clust" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ACE-OF-Clust
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              I/O
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ACE-OF-Clust" class="md-nav__button md-logo" aria-label="ACE-OF-Clust" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    ACE-OF-Clust
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/toy_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A Toy Example
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/run_clumppling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run Clumppling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/ex1_pbmc3k_hc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PBMC3K Hard Clustering Example
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/ex2_hbc_mmc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HBC Spatial Transcriptomics – Aligned Results Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clumppling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clumppling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    I/O
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    I/O
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ace_of_clust.io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        io
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ace_of_clust.io-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.ClumpplingResults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ClumpplingResults
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ClumpplingResults">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.ClumpplingResults-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.ClumpplingResults.reorder_inds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reorder_inds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CompModelsResults
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CompModelsResults">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults.get_Q" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_Q
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults.get_Q_for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_Q_for
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults.reorder_inds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reorder_inds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ace_of_clust.io-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.add_pairwise_alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_pairwise_alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.filter_bed_by_peaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter_bed_by_peaks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.filter_gene_links_by_ccre" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter_gene_links_by_ccre
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.group_modes_by_K" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        group_modes_by_K
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.infer_K_range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        infer_K_range
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_aligned_Qs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_aligned_Qs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_alignment_across_K" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_alignment_across_K
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_all_modes_alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_all_modes_alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_clumppling_results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_clumppling_results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_compmodels_results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_compmodels_results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_gene_intervals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_gene_intervals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_gene_set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_gene_set
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_input_meta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_input_meta
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_mode_alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_mode_alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_mode_stats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_mode_stats
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_unaligned_for_modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_unaligned_for_modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.subset_compmodels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subset_compmodels
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plotting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plotting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ace_of_clust.io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        io
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ace_of_clust.io-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.ClumpplingResults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ClumpplingResults
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ClumpplingResults">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.ClumpplingResults-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.ClumpplingResults.reorder_inds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reorder_inds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CompModelsResults
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CompModelsResults">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults.get_Q" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_Q
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults.get_Q_for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_Q_for
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.CompModelsResults.reorder_inds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reorder_inds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ace_of_clust.io-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.add_pairwise_alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_pairwise_alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.filter_bed_by_peaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter_bed_by_peaks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.filter_gene_links_by_ccre" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter_gene_links_by_ccre
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.group_modes_by_K" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        group_modes_by_K
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.infer_K_range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        infer_K_range
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_aligned_Qs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_aligned_Qs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_alignment_across_K" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_alignment_across_K
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_all_modes_alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_all_modes_alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_clumppling_results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_clumppling_results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_compmodels_results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_compmodels_results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_gene_intervals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_gene_intervals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_gene_set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_gene_set
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_input_meta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_input_meta
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_mode_alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_mode_alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_mode_stats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_mode_stats
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.load_unaligned_for_modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_unaligned_for_modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ace_of_clust.io.subset_compmodels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subset_compmodels
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="io">I/O</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="ace_of_clust.io"></a>
+    <div class="doc doc-contents first">
+
+        <p>io.py</p>
+<p>Functions for loading clumppling's main and compModel outputs, as well as other related data.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+<h3 id="ace_of_clust.io-classes">Classes</h3>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="ace_of_clust.io.ClumpplingResults" class="doc doc-heading">
+            <code>ClumpplingResults</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Container for all core clumppling outputs needed for analysis/plots.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.align_dir">align_dir</span></code></td>
+            <td>
+                  <code><span title="pathlib.Path">Path</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Directory containing clumppling outputs
+(e.g. output/clumppling/pbmc10k-tutorial_hc_output).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.suffix">suffix</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Suffix used in aligned Q filenames (e.g. "rep" or "avg").</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.mode_alignment">mode_alignment</span></code></td>
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DataFrame loaded from 'mode_alignment.txt'.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.mode_stats">mode_stats</span></code></td>
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DataFrame loaded from 'mode_stats.txt'.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.modes">modes</span></code></td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Flat list of mode names (e.g. ["K5M1", "K5M2", ...]).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.mode_K">mode_K</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mapping from mode name to K for that mode.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.K_range">K_range</span></code></td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Sorted unique K values across all modes.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.K_max">K_max</span></code></td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Maximum K value across all modes.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.mode_names_list">mode_names_list</span></code></td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.List">List</span>[<span title="str">str</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Grouped mode names by K (same structure as notebook).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.Q_by_mode">Q_by_mode</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="numpy.ndarray">ndarray</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mapping from mode name to aligned membership matrix.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.alignment_acrossK">alignment_acrossK</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Sequence">Sequence</span>[<span title="int">int</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{"A-B" -&gt; mapping from B-&gt;A (original indices)}</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.cost_acrossK">cost_acrossK</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mapping from mode name to alignment cost.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.all_modes_alignment">all_modes_alignment</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Sequence">Sequence</span>[<span title="int">int</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{mode_name -&gt; reordering (aligned columns)}</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.mode_coord_dict">mode_coord_dict</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Tuple">Tuple</span>[<span title="int">int</span>, <span title="int">int</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{mode_name -&gt; (row_idx, col_idx)} grid by K.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.mode_sep_coord_dict">mode_sep_coord_dict</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="typing.Tuple">Tuple</span>[<span title="str">str</span>, <span title="int">int</span>], <span title="typing.Tuple">Tuple</span>[<span title="int">int</span>, <span title="int">int</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{(mode_name, cls_idx) -&gt; (row_idx, col_idx)}.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.input_meta">input_meta</span></code></td>
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DataFrame loaded from 'input_meta.txt', if available.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.Q_unaligned_by_mode">Q_unaligned_by_mode</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="numpy.ndarray">ndarray</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{mode_name -&gt; unaligned membership matrix}, if loaded.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.P_unaligned_by_mode">P_unaligned_by_mode</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="numpy.ndarray">ndarray</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{mode_name -&gt; unaligned feature matrix}, if loaded.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.ClumpplingResults.P_aligned_by_mode">P_aligned_by_mode</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="numpy.ndarray">ndarray</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{mode_name -&gt; aligned feature matrix}, if loaded.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+<h5 id="ace_of_clust.io.ClumpplingResults-functions">Functions</h5>
+
+<div class="doc doc-object doc-function">
+
+
+<h6 id="ace_of_clust.io.ClumpplingResults.reorder_inds" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reorder_inds</span><span class="p">(</span><span class="n">reorder_idx</span><span class="p">)</span></code>
+
+</h6>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return a new CompModelsResults with all Q matrices reordered
+according to reorder_idx.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="ace_of_clust.io.CompModelsResults" class="doc doc-heading">
+            <code>CompModelsResults</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Container for clumppling.compModels outputs and associated metadata.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.res_dir">res_dir</span></code></td>
+            <td>
+                  <code><span title="pathlib.Path">Path</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Directory containing compModels outputs
+(e.g. output/comp_models/pbmc10k-tutorial_hc_output).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.input_dir">input_dir</span></code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="pathlib.Path">Path</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Directory containing per-model input stats for compModels
+(e.g. output/comp_models/pbmc10k-tutorial_hc).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.models">models</span></code></td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Model names (e.g. "rna.seurat.louvain", "rna.seurat.leiden", ...).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.modes_by_model">modes_by_model</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.List">List</span>[<span title="str">str</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>For each model, a list of <em>short</em> mode names with the model prefix
+stripped, e.g. {"rna.seurat.louvain": ["K21M1", "K21M2", ...]}.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.full_mode_names_by_model">full_mode_names_by_model</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.List">List</span>[<span title="str">str</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>For each model, the full mode names as used in filenames,
+e.g. {"rna.seurat.louvain": ["rna.seurat.louvain_K21M1", ...]}.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.full_mode_names">full_mode_names</span></code></td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Flat list of all full mode names across all models.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.Q_by_mode">Q_by_mode</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="numpy.ndarray">ndarray</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mapping full mode name -&gt; aligned membership matrix Q loaded from
+res_dir / "aligned" / f"{mode}.Q".</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.all_modes_alignment">all_modes_alignment</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Sequence">Sequence</span>[<span title="int">int</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mapping full mode name -&gt; global alignment pattern, parsed from
+res_dir / "aligned" / "all_modes_alignment.txt" if present.
+(Keys are full mode names; values are index patterns.)</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.alignment_across_all">alignment_across_all</span></code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Sequence">Sequence</span>[<span title="int">int</span>]]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Reserved for cross-mode alignment patterns (currently left as None
+unless you later decide to parse additional files).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.cost_across_all">cost_across_all</span></code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="float">float</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Reserved for cross-mode alignment costs (currently None).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.mode_stats_by_model">mode_stats_by_model</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="pandas.DataFrame">DataFrame</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>For each model, its original mode_stats DataFrame loaded from
+input_dir / f"{model}_mode_stats.txt", if available.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.K_max">K_max</span></code></td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="ace_of_clust.io.CompModelsResults.K_max_by_model">K_max_by_model</span></code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+<h5 id="ace_of_clust.io.CompModelsResults-functions">Functions</h5>
+
+<div class="doc doc-object doc-function">
+
+
+<h6 id="ace_of_clust.io.CompModelsResults.get_Q" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_Q</span><span class="p">(</span><span class="n">full_mode_name</span><span class="p">)</span></code>
+
+</h6>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the aligned Q matrix for a full mode name.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h6 id="ace_of_clust.io.CompModelsResults.get_Q_for" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_Q_for</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode_short</span><span class="p">)</span></code>
+
+</h6>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the aligned Q matrix for a (model, short_mode_name) pair,
+where short_mode_name is e.g. 'K21M1'.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h6 id="ace_of_clust.io.CompModelsResults.reorder_inds" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reorder_inds</span><span class="p">(</span><span class="n">reorder_idx</span><span class="p">)</span></code>
+
+</h6>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return a new CompModelsResults with all Q matrices reordered
+according to reorder_idx.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+<h3 id="ace_of_clust.io-functions">Functions</h3>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.add_pairwise_alignment" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">add_pairwise_alignment</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">alignment</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return a <em>new</em> ClumpplingResults with alignment updated.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>res</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="ClumpplingResults
+
+
+  
+      dataclass
+   (ace_of_clust.io.ClumpplingResults)" href="#ace_of_clust.io.ClumpplingResults">ClumpplingResults</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Original results object.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>alignment</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>New alignment patterns per mode, e.g. {'K17M1': [2,0,1], ...}</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="ClumpplingResults
+
+
+  
+      dataclass
+   (ace_of_clust.io.ClumpplingResults)" href="#ace_of_clust.io.ClumpplingResults">ClumpplingResults</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>New results object with updated Q_by_mode, P_aligned_by_mode,
+and all_modes_alignment according to the new alignment.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.filter_bed_by_peaks" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">filter_bed_by_peaks</span><span class="p">(</span><span class="n">bed_path</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ccre_id_col</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Stream a BED file and keep only lines that overlap any of the given peaks.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>bed_path</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> or <span title="pathlib.Path">Path</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Path to the BED file to filter.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>peaks</code>
+            </td>
+            <td>
+                  <code>iterable of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Iterable of peak strings, e.g. ['chr1:10109-10357', ...]</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>ccre_id_col</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Column index (0-based) in the BED file where the cCRE ID is located.</p>
+              </div>
+            </td>
+            <td>
+                  <code>3</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>filtered_rows</code></td>            <td>
+                  <code>list of list[str]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Each inner list is the BED line split by '      '.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td><code>kept_ids</code></td>            <td>
+                  <code>set of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Set of cCRE IDs (from column <code>ccre_id_col</code>) for filtered rows.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.filter_gene_links_by_ccre" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">filter_gene_links_by_ccre</span><span class="p">(</span><span class="n">gene_links_path</span><span class="p">,</span> <span class="n">kept_ids</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ccre_id_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keep_header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Stream a gene-link file and keep only rows whose cCRE ID is in kept_ids.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>gene_links_path</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> or <span title="pathlib.Path">Path</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Path to the gene-link file to filter.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>kept_ids</code>
+            </td>
+            <td>
+                  <code>set of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Set of cCRE IDs to keep.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>ccre_id_col</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Column index (0-based) in the gene-link file where the cCRE ID is located.</p>
+              </div>
+            </td>
+            <td>
+                  <code>0</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>keep_header</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Whether to keep and return the header line (first line) of the file.</p>
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>header</code></td>            <td>
+                  <code><span title="list">list</span>[<span title="str">str</span>] or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Header columns if keep_header=True and file has at least one line,
+otherwise None.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td><code>filtered_rows</code></td>            <td>
+                  <code>list of list[str]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Data rows (split by '   ') with cCRE IDs in kept_ids.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.group_modes_by_K" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">group_modes_by_K</span><span class="p">(</span><span class="n">mode_names</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Group a flat list of mode names into a list-of-lists by K.</p>
+<p>Given a list like:
+    ['K17M1', 'K17M2', 'K18M1', 'K19M1']
+return:
+    [['K17M1', 'K17M2'], ['K18M1'], ['K19M1']]</p>
+<p>This mirrors the notebook helper.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>mode_names</code>
+            </td>
+            <td>
+                  <code>sequence of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>mode_names_list</code></td>            <td>
+                  <code>list of list of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>One sublist per K, ordered by increasing K.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.infer_K_range" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">infer_K_range</span><span class="p">(</span><span class="n">mode_names</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Convenience helper to get sorted K values from mode names.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>mode_names</code>
+            </td>
+            <td>
+                  <code>sequence of str, e.g. [&#39;K17M1&#39;, &#39;K17M2&#39;, &#39;K18M1&#39;]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>K_range</code></td>            <td>
+                  <code>list of int, e.g. [17, 18]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_aligned_Qs" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_aligned_Qs</span><span class="p">(</span><span class="n">align_dir</span><span class="p">,</span> <span class="n">modes</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;rep&#39;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load aligned membership matrices for each mode from 'modes_aligned'.</p>
+<p>Files are expected to be named like:
+    <mode_name>_<suffix>.Q
+e.g. "K17M1_rep.Q"</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>align_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Main clumppling output directory (same as used in load_mode_alignment).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>modes</code>
+            </td>
+            <td>
+                  <code>sequence of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mode names to load, e.g. from _get_mode_names(...).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>suffix</code>
+            </td>
+            <td>
+                  <code>(&#39;rep&#39;, &#39;avg&#39;)</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Suffix used by clumppling when writing aligned modes.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#34;rep&#34;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>delimiter</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Delimiter for the Q files.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#34; &#34;</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>Q_by_mode</code></td>            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{mode_name -&gt; np.ndarray of shape (n_individuals, K_mode)}</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_alignment_across_K" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_alignment_across_K</span><span class="p">(</span><span class="n">align_file</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load alignment_acrossK and cost_acrossK from the file written by
+clumppling.write_alignment_across_k.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>align_file</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> | <span title="ace_of_clust.io.PathLike">PathLike</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Path to the alignment file.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>alignment_acrossK</code></td>            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{pair_label -&gt; alignment pattern}, where <code>alignment pattern</code> is
+a sequence of ints mapping clusters between two modes.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td><code>cost_acrossK</code></td>            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{pair_label -&gt; float cost}</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_all_modes_alignment" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_all_modes_alignment</span><span class="p">(</span><span class="n">align_dir</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;rep&#39;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load all_modes_alignment from the file written by clumppling.write_reordered_across_k.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>align_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Main clumppling output directory.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>suffix</code>
+            </td>
+            <td>
+                  <code>(&#39;rep&#39;, &#39;avg&#39;)</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Suffix used when writing the all-modes alignment file.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#34;rep&#34;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>filename</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Override the default filename if needed. If None, uses
+f"all_modes_alignment_{suffix}.txt".</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>all_modes_alignment</code></td>            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{mode_label -&gt; alignment_pattern}, where alignment_pattern is obtained
+by applying str_to_pattern to the stored pattern string.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_clumppling_results" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_clumppling_results</span><span class="p">(</span><span class="n">align_dir</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;rep&#39;</span><span class="p">,</span> <span class="n">round_Q</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cls_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load_unaligned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">load_P</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strict_P</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">p_ext</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load clumppling results from the specified directory.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>align_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The clumppling output directory used as <code>-o/--output</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>suffix</code>
+            </td>
+            <td>
+                  <code>(&#39;rep&#39;, &#39;avg&#39;)</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Suffix used in the aligned Q filenames, e.g. "K17M1_rep.Q".</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#34;rep&#34;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>round_Q</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If True, apply np.rint to each aligned Q matrix to get hard cluster
+memberships.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>cls_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Directory containing the original clustering outputs (*.P files).
+If provided and load_P is True, P matrices will be loaded.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>load_P</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Whether to attempt loading P matrices at all. Set to False if you
+know this run has no P files (e.g. hard clustering only).</p>
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>strict_P</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If True, missing P files raise FileNotFoundError.
+If False, missing P files will emit a warning and skip P loading.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>p_ext</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>File extension for P matrices.  Use this when the tool writes P files
+with a non-standard extension, e.g. <code>p_ext="meanP"</code> for
+fastStructure (whose P files end in <code>.meanP</code> rather than <code>.P</code>).
+When <em>None</em> (default), the extension is derived from <code>mat_type</code>
+as before.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_compmodels_results" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_compmodels_results</span><span class="p">(</span><span class="n">res_dir</span><span class="p">,</span> <span class="n">input_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load outputs from <code>clumppling.compModels</code> into a CompModelsResults object.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>res_dir</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> or <span title="pathlib.Path">Path</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Directory containing compModels outputs, e.g.
+.../output/comp_models/pbmc10k-tutorial_hc_output</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>input_dir</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> or <span title="pathlib.Path">Path</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Directory containing per-model input stats used for compModels,
+e.g. .../output/comp_models/pbmc10k-tutorial_hc.
+If None, mode_stats_by_model will be empty.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="CompModelsResults
+
+
+  
+      dataclass
+   (ace_of_clust.io.CompModelsResults)" href="#ace_of_clust.io.CompModelsResults">CompModelsResults</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Structured container for multi-model Q matrices, mode lists,
+global alignment patterns, and per-model mode_stats.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_gene_intervals" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_gene_intervals</span><span class="p">(</span><span class="n">gtf_file</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">upstream</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">feature_type</span><span class="o">=</span><span class="s1">&#39;gene&#39;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;HAVANA&#39;</span><span class="p">,</span> <span class="n">gene_type_allowlist</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Stream a (possibly gzipped) GTF and extract only the intervals needed.
+Returns dict: chrom -&gt; sorted list of (start, end, gene_name).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_gene_set" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_gene_set</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">gene_set_dir</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load a gene-set file (one symbol per line) from a directory.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Gene-set name, used as the file stem (e.g. <code>"HALLMARK_E2F_TARGETS"</code>
+or just <code>"E2F_TARGETS"</code> when <code>prefix="HALLMARK_"</code>).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>gene_set_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Directory containing <code>.txt</code> gene-set files.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>prefix</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If provided and <code>name</code> does not already start with it, the prefix is
+prepended before constructing the filename.  Useful for MSigDB Hallmark
+collections where files are named <code>HALLMARK_&lt;name&gt;.txt</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code>list of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Gene symbols, one per line, with blank lines removed.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_input_meta" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_input_meta</span><span class="p">(</span><span class="n">align_dir</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load the 'input_meta.txt' table that links original Q/P files to modes.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>align_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The main clumppling output directory.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>input_meta</code></td>            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_mode_alignment" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_mode_alignment</span><span class="p">(</span><span class="n">align_dir</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load the 'mode_alignment.txt' table produced by clumppling.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>align_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The main output directory passed as <code>-o/--output</code> to clumppling.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>mode_alignment</code></td>            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_mode_stats" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_mode_stats</span><span class="p">(</span><span class="n">align_dir</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load the 'mode_stats.txt' table produced by clumppling.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>align_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The main output directory passed as <code>-o/--output</code> to clumppling.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>mode_stats</code></td>            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.load_unaligned_for_modes" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_unaligned_for_modes</span><span class="p">(</span><span class="n">cls_dir</span><span class="p">,</span> <span class="n">align_dir</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mat_type</span><span class="p">,</span> <span class="n">modes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode_stats</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">input_meta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">p_ext</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load the unaligned P matrices for each mode.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>cls_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Directory that contains the original MMC / clustering outputs, i.e.
+where the '*.P' files live.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>align_dir</code>
+            </td>
+            <td>
+                  <code><span title="path">path</span> - <span title="like">like</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Main clumppling output directory (used to load mode_stats and input_meta
+if they are not provided).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>mat_type</code>
+            </td>
+            <td>
+                  <code><span title="typing.Literal">Literal</span>[&#39;P&#39;, &#39;Q&#39;]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Type of matrix to load. Currently "P" and "Q" are supported.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>modes</code>
+            </td>
+            <td>
+                  <code>sequence of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mode names to load. If None, they are inferred from mode_alignment.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>mode_stats</code>
+            </td>
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If already loaded, pass it to avoid re-reading.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>input_meta</code>
+            </td>
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If already loaded, pass it to avoid re-reading.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>delimiter</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Delimiter for the matrix files. <code>None</code> (default) splits on any
+whitespace, which correctly handles both single- and double-space
+separated outputs (e.g. fastStructure <code>meanP</code>/<code>meanQ</code> files).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>p_ext</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Extension to use for P files when <code>mat_type="P"</code>.  When set, the
+extension already present on <code>orig_file_name</code> (e.g. <code>.meanQ</code> for
+fastStructure) is stripped via <code>Path.stem</code> and replaced with this
+value.  For example, pass <code>p_ext="meanP"</code> for fastStructure runs
+whose P files end in <code>.meanP</code>.  If <em>None</em> (default), the old
+behaviour is preserved: <code>mat_type</code> is appended directly to
+<code>orig_file_name</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>mat_by_mode</code></td>            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>{mode_name -&gt; np.ndarray of shape (n_features, K_mode)}</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="ace_of_clust.io.subset_compmodels" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">subset_compmodels</span><span class="p">(</span><span class="n">comp_res</span><span class="p">,</span> <span class="n">K_min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">K_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">K_values</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return a new CompModelsResults object restricted to a subset of K values.</p>
+<p>A mode is kept if its number of clusters K = Q.shape[1] satisfies:
+  - if K_values is not None: K in K_values
+  - else: K_min &lt;= K &lt;= K_max (with open ends if K_min/K_max is None)</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>comp_res</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="CompModelsResults
+
+
+  
+      dataclass
+   (ace_of_clust.io.CompModelsResults)" href="#ace_of_clust.io.CompModelsResults">CompModelsResults</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Original full comparison results.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>K_min</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Lower / upper bounds for K. Ignored if K_values is provided.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>K_max</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Lower / upper bounds for K. Ignored if K_values is provided.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>K_values</code>
+            </td>
+            <td>
+                  <code>sequence of int</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Explicit set of K values to keep.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="CompModelsResults
+
+
+  
+      dataclass
+   (ace_of_clust.io.CompModelsResults)" href="#ace_of_clust.io.CompModelsResults">CompModelsResults</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>New results object with only the selected modes and updated metadata.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,42 @@
+site_name: ACE-OF-Clust
+theme:
+  name: material
+
+docs_dir: .
+site_dir: ../site
+
+plugins:
+  - search
+  - mkdocs-jupyter
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+            docstring_style: numpy  # change to google if you prefer
+            group_by_category: true
+            show_category_heading: true
+
+nav:
+  - Home: index.md
+  - Tutorials:
+      - Quickstart: tutorials/quickstart.ipynb
+      - Toy Example: tutorials/toy_example.ipynb
+      - Run Clumppling: tutorials/run_clumppling.md
+      - PBMC3K Hard Clustering Example: tutorials/ex1_pbmc3k_hc.ipynb
+      - HBC Spatial Transcriptomics Mixed-Membership Clustering Example: tutorials/ex2_hbc_mmc.ipynb
+  - Reference:
+      - Overview: reference/index.md
+      - Clumppling: reference/clumppling.md
+      - I/O: reference/io.md
+      - Analysis: reference/analysis.md
+      - Plotting: reference/plotting.md
+      
+markdown_extensions:
+  - attr_list
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/logo.png   # or a .ico/.png favicon
