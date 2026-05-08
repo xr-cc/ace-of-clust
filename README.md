@@ -3,14 +3,14 @@ ACE-OF-Clust (**A**lignment, **C**omparison, and **E**valuation of **O**mics **F
 
 - **PyPI name (install):** `ace-of-clust`
 - **Python import (module):** `ace_of_clust`
-- **Current Version:** 0.2.1
-- **Release Date:** May 2026
+- **Current Version:** 0.2.2
+- **Last Update:** May 2026
 
-See [this doc site](https://xr-cc.github.io/ace-of-clust) for the tutorials and API reference for the package.
+**Check out [this documentation site](https://xr-cc.github.io/ace-of-clust) for the <u>tutorials</u> and API reference for the package.**
 
 ## Preprint
 
-Liu, X., et al. (2026). ACE-OF-Clust: Alignment, Comparison, and Evaluation of Omics Features in Clustering. <https://doi.org/10.64898/2026.03.09.710668>
+Liu, X., et al. (2026). Systematic clustering alignment and feature characterization for single-cell omics using ACE-OF-Clust. <https://doi.org/10.64898/2026.03.09.710668>
 
 
 ## Installation
@@ -92,8 +92,9 @@ fig, ax = aoc.plot_compmodels_membership_grid(
 
 ## Reproducing examples
 
-This repo keeps example scripts/notebooks separate from the installable library code.
-To reproduce examples:
+*__Note__: Step-by-step tutorials are available on [the documentation site](https://xr-cc.github.io/ace-of-clust). Please refer to the site for general usage instructions.*
+
+This repository keeps example scripts and notebooks separate from the installable library code. Its main purpose is to reproduce the figures from our manuscript. To reproduce the examples:
 
 1. Install the package (`pip install ace-of-clust`)
 2. Clone this repository (for `examples/`, etc.)
@@ -102,7 +103,7 @@ To reproduce examples:
 ### Examples included
 
 **Toy example**
-- `toy_example.ipynb` — end-to-end walkthrough on simulated data
+- `toy_example.ipynb` — end-to-end walkthrough on simulated data, available on [the documentation site](https://xr-cc.github.io/ace-of-clust).
 
 **PBMC3K scRNA-seq (hard clustering)**
 - `pbmc3k_scRNAseq_clumppling.py` — run Clumppling alignment on PBMC3K clustering results
@@ -123,3 +124,6 @@ To reproduce examples:
 - `run_seurat_clustering.R` — generate scRNA-seq clustering results with Seurat
 - `run_fasttopics_clustering.R` — generate mixed-membership clustering results with FastTopics
 
+## Bug Reports and Feedback
+
+If you encounter any issues using the tool, have suggestions for additional functions to include in the package, or have general feedback on our method, please contact the author at [xiran_liu1 at brown dot edu](mailto:xiran_liu1@brown.edu).
