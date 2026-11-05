@@ -92,3 +92,11 @@ examples/hbc_st_*
 
 # ── compModels input lists (generated, contain absolute local paths) ─────────
 examples/data/**/*.qfilelist
+
+# local files, not part of the repository
+.cache/
+examples/pbmc3k_scRNAseq_clumppling.ipynb
+examples/scripts/*.sh
+examples/data/pbmc3k/aligned/
+examples/data/pbmc3k/clustering/full_mmc/
+examples/data/pbmc3k/clustering/hvg_hc/scanpy_tutorial_K8.Q
