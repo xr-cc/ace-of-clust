@@ -1,9 +1,4 @@
-"""
-plot_enrichment.py
-
-Gene set enrichment visualizations.
-
-"""
+"""Plots of gene set enrichment results."""
 
 from __future__ import annotations
 
@@ -26,7 +21,38 @@ from .io import ClumpplingResults
 def plot_pairwise_heatmap(value_mat: np.ndarray, sig_mat=None, labels=None, title=None,
                           upper_only=True, cmap="coolwarm", center_zero=True,
                           sig_level=0.05, figsize=(7, 6), dpi=150, ax=None):
-    """Heatmap of a KxK matrix with optional significance overlay."""
+    """
+    Heatmap of a cluster-by-cluster matrix, with significant cells marked by *.
+
+    Parameters
+    ----------
+    value_mat
+        Values (K, K).
+    sig_mat
+        p- or q-values (K, K); cells below sig_level are marked.
+    labels
+        Cluster labels.
+    title
+        Title.
+    upper_only
+        Show only the upper triangle.
+    cmap
+        Colormap.
+    center_zero
+        Center the color scale on 0.
+    sig_level
+        Significance level.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
+    """
     mat = np.asarray(value_mat, dtype=float).copy()
     K   = mat.shape[0]
     if upper_only:
@@ -77,21 +103,37 @@ def plot_pairwise_heatmap_bidir(
     dpi: int = 150,
     ax=None,
 ):
-    """Heatmap with two KxK matrices split across upper and lower triangles.
+    """
+    Heatmap of two cluster-by-cluster matrices, one in each triangle, with significant cells marked by *.
 
     Parameters
     ----------
-    upper_mat, lower_mat : (K, K) arrays
-        Values for the upper / lower triangle respectively.
-    upper_cmap, lower_cmap : colormap names
-    upper_sig, lower_sig : (K, K) arrays, optional
-        p-value (or any criterion) matrices; cells where value < sig_level
-        are annotated with *.
-    sig_level : float, default 0.05
-    labels : list of str, optional
-    upper_label, lower_label : colorbar axis labels
-    center_zero : bool
-        If True, color scale is symmetric around 0.
+    upper_mat, lower_mat
+        Values (K, K) of the upper and lower triangles.
+    upper_cmap, lower_cmap
+        Colormaps.
+    upper_sig, lower_sig
+        p- or q-values (K, K); cells below sig_level are marked.
+    sig_level
+        Significance level.
+    labels
+        Cluster labels.
+    upper_label, lower_label
+        Colorbar labels.
+    title
+        Title.
+    center_zero
+        Center the color scales on 0.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
     """
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -181,31 +223,35 @@ def plot_P_enrichment_heatmap(
     title: str | None = None,
     ax=None,
 ):
-    """Single heatmap of per-cluster P enrichment across all modes.
-
-    Rows = modes, columns = clusters (C1 … CK_max).  Each cell shows the
-    P enrichment z-score (``value="z"``) or empirical p-value
-    (``value="p"``) for that cluster in that mode.  Cells exceeding a mode's
-    K are shown as NaN.  Cells where p_emp < sig_level are annotated with *.
+    """
+    Heatmap of P enrichment by mode (rows) and cluster (columns), with significant cells marked by *.
 
     Parameters
     ----------
-    res_by_mode : dict
-        Output of ``run_gs_enrichment``: ``{mode: {p_res, ...}}``.
-    results :
-        Clumppling results object with ``.modes`` and ``.mode_K`` attributes.
-    value : {"z", "p"}
-        Which quantity to colour: z-score or empirical p-value.
-    sig_level : float
-        Significance threshold for * annotation (applied to p_emp).
-    cmap : str
-        Defaults to ``"OrRd"`` for z-score (one-sided enrichment);
-        use ``"coolwarm"`` if you expect negative z-scores.
-    center_zero : bool
-        Symmetric colour scale around 0.  Default False (z-scores are
-        typically positive for enrichment).
-    figsize : tuple, optional
-    title : str, optional
+    res_by_mode
+        Output of `run_gs_enrichment`.
+    results
+        Clumppling results, for K of each mode.
+    value
+        "z" (z-score) or "p" (empirical p-value).
+    sig_level
+        Significance level of p_emp.
+    cmap
+        Colormap.
+    center_zero
+        Center the color scale on 0.
+    figsize
+        Figure size; None scales with the data.
+    dpi
+        Figure resolution.
+    title
+        Title.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
     """
     modes = list(res_by_mode.keys())
     # check if results.mode_K is a dict or list and get K for this mode    
@@ -285,33 +331,37 @@ def plot_LFC_enrichment_heatmap(
     title: str | None = None,
     ax=None,
 ):
-    """Single heatmap of pairwise LFC enrichment across all modes.
+    """
+    Heatmap of pairwise LFC enrichment by mode (rows) and cluster pair (columns), with significant cells marked by *.
 
-    Rows = modes, columns = cluster pairs (i < j) ordered lexicographically up
-    to K_max.  The same pair (e.g. C1 vs C2) occupies the same column for every
-    mode, making it easy to compare enrichment of a given pair across modes.
-    Cells are NaN (blank) for pairs that exceed a mode's K.
-    Cells where q < sig_level are annotated with *.
-
-    Pairs are grouped visually by their first cluster index with light vertical
-    separators; the secondary x-axis labels each group "Cv*" (e.g. C1v*).
+    Each pair (i < j) has the same column in every mode; pairs beyond a mode's K are blank.
 
     Parameters
     ----------
-    res_by_mode : dict
-        Output of ``run_gs_enrichment``: ``{mode: {lfc_res, ...}}``.
-    results :
-        Clumppling results object with ``.modes`` and ``.mode_K`` attributes.
-    value : {"z", "obs"}
-        Which LFC quantity to colour: z-score or observed LFC.
-    sig_level : float
-        Significance threshold for * annotation (applied to q values).
-    cmap : str
-    center_zero : bool
-        Symmetric colour scale around 0.
-    figsize : tuple, optional
-        Defaults to ``(max(6, 0.55 * n_pairs), 0.45 * n_modes + 1.5)``.
-    title : str, optional
+    res_by_mode
+        Output of `run_gs_enrichment`.
+    results
+        Clumppling results, for K of each mode.
+    value
+        "z" (z-score) or "obs" (observed LFC).
+    sig_level
+        Significance level of q.
+    cmap
+        Colormap.
+    center_zero
+        Center the color scale on 0.
+    figsize
+        Figure size; None scales with the data.
+    dpi
+        Figure resolution.
+    title
+        Title.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
     """
     modes = list(res_by_mode.keys())
     # check if results.mode_K is a dict or list and get K for this mode
@@ -416,7 +466,36 @@ def plot_LFC_enrichment_heatmap(
 
 def plot_top_pairwise_df(df: pd.DataFrame, value_col="z", sig_col="q", alpha=0.05,
                          top_n=-1, labels=None, sort_by="q", figsize=(8, 6), dpi=150, ax=None):
-    """Dot plot of top cluster pairs sorted by significance or effect size."""
+    """
+    Dot plot of cluster pairs from `test_LFC_enrichment` (df), with significant pairs circled.
+
+    Parameters
+    ----------
+    df
+        Per-pair table, with columns i, j, value_col and sig_col.
+    value_col
+        Column to plot.
+    sig_col
+        Column of q- or p-values.
+    alpha
+        Significance level.
+    top_n
+        Number of pairs to show; non-positive shows all.
+    labels
+        Cluster labels.
+    sort_by
+        Column to sort by, or "abs_value" for |value_col|.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
+    """
     d = df.copy()
     d["pair"] = ([f"{labels[i]} vs {labels[j]}" for i, j in zip(d["i"], d["j"])]
                  if labels is not None else [f"{i} vs {j}" for i, j in zip(d["i"], d["j"])])
@@ -445,7 +524,30 @@ def plot_top_pairwise_df(df: pd.DataFrame, value_col="z", sig_col="q", alpha=0.0
 
 def plot_P_enrichment_pval(p_res: Dict[str, float], cluster_labels: List[str], colors: List[str], title: str = "",
                            figsize: Tuple[float, float] = (4, 4), dpi: int = 150, ax=None):
-    """Bar chart of empirical p-values (-log10) per cluster."""
+    """
+    Bar chart of -log10 empirical p-values of P enrichment per cluster.
+
+    Parameters
+    ----------
+    p_res
+        Output of `test_P_enrichment`.
+    cluster_labels
+        Cluster labels.
+    colors
+        Color per cluster.
+    title
+        Title.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
+    """
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     else:
@@ -462,7 +564,30 @@ def plot_P_enrichment_pval(p_res: Dict[str, float], cluster_labels: List[str], c
 
 def plot_P_enrichment_zscore(p_res: Dict[str, float], cluster_labels: List[str], colors: List[str], title: str = "",
                              figsize: Tuple[float, float] = (4, 4), dpi: int = 150, ax=None):
-    """Bar chart of z-scores vs null per cluster."""
+    """
+    Bar chart of P enrichment z-scores per cluster.
+
+    Parameters
+    ----------
+    p_res
+        Output of `test_P_enrichment`.
+    cluster_labels
+        Cluster labels.
+    colors
+        Color per cluster.
+    title
+        Title.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
+    """
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     else:
@@ -479,7 +604,26 @@ def plot_P_enrichment_zscore(p_res: Dict[str, float], cluster_labels: List[str],
 
 
 def plot_sepLFC_null_sep(sep_res: Dict[str, float], title: str = "", figsize: Tuple[float, float] = (5, 4), dpi: int = 150, ax=None):
-    """Histogram of null best-sepLFC per random set, with gene-set value marked."""
+    """
+    Histogram of the best sepLFC of each random gene set, with the gene set's sepLFC marked.
+
+    Parameters
+    ----------
+    sep_res
+        Output of `test_sepLFC_enrichment`.
+    title
+        Title.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
+    """
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     else:
@@ -495,7 +639,28 @@ def plot_sepLFC_null_sep(sep_res: Dict[str, float], title: str = "", figsize: Tu
 
 
 def plot_sepLFC_null_fixed(sep_res: Dict[str, float], cluster_labels: List[str], title: str = "", figsize: Tuple[float, float] = (5, 4), dpi: int = 150, ax=None):
-    """Histogram of null LFC at the gene-set's fixed cluster groups, with gene-set value marked."""
+    """
+    Histogram of the LFC of each random gene set at the observed split, with the gene set's sepLFC marked.
+
+    Parameters
+    ----------
+    sep_res
+        Output of `test_sepLFC_enrichment`.
+    cluster_labels
+        Cluster labels.
+    title
+        Title.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
+    """
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     else:
@@ -527,49 +692,41 @@ def plot_sepLFC_distribution(
     dpi: int = 150,
     ax=None,
 ):
-    """Distribution of per-gene sepLFC, with gene-set genes highlighted.
+    """
+    Distribution of sepLFC over genes, with the gene set's genes highlighted.
 
     Parameters
     ----------
-    df : pd.DataFrame
-        Gene-indexed DataFrame with columns ``sepLFC`` and ``rank_sepLFC``
-        (output of ``compute_all_feature_metrics`` filtered to a sepCls).
-        Should be pre-sorted descending by ``sepLFC``.
-    gs_genes : set or list of str
-        Gene names belonging to the gene set of interest.
-    title : str
-        Axes title.
-    kind : {"auto", "bar", "hist"}
-        Chart type.  ``"auto"`` (default) uses bar when ``len(df) < 30``,
-        hist otherwise.
-    show_gs_textbox : bool
-        Show a text box listing gene-set genes with high sepLFC.  Only
-        rendered in hist mode.  Default ``True``.
-    gs_textbox_threshold : float or None
-        Minimum sepLFC for inclusion in the GS text box.  When ``None``
-        (default) the top ``n_gs_textbox`` gene-set genes by rank are shown.
-    n_gs_textbox : int
-        Maximum number of gene-set genes in the GS text box (used when
-        ``gs_textbox_threshold`` is ``None``).  Default 10.
-    show_non_gs_textbox : bool
-        Show a text box listing the top non-GS genes by sepLFC.  Only
-        rendered in hist mode.  Default ``False``.
-    n_non_gs_textbox : int
-        Number of top non-GS genes to list.  Default 10.
-    textbox_fontsize : int
-        Font size for gene lines inside text boxes.  The box title is rendered
-        one point larger and bold.  Default 9.
-    figsize : tuple of (float, float)
-        Figure size in inches.  Default ``(6, 5)``.
-    dpi : int
-        Figure resolution.  Default 150.
-    ax : matplotlib.axes.Axes, optional
-        Draw into an existing axes if provided.
+    df
+        Feature metrics with sepLFC and rank_sepLFC columns, sorted by sepLFC (descending).
+    gs_genes
+        Gene set genes.
+    title
+        Title.
+    kind
+        "bar", "hist", or "auto" (bar if fewer than 30 genes).
+    show_gs_textbox
+        List gene set genes in a text box (hist only).
+    gs_textbox_threshold
+        Minimum sepLFC to list; None lists the top n_gs_textbox.
+    n_gs_textbox
+        Maximum number of gene set genes to list.
+    show_non_gs_textbox
+        List the top other genes in a text box (hist only).
+    n_non_gs_textbox
+        Number of other genes to list.
+    textbox_fontsize
+        Font size of the text boxes.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-    ax : matplotlib.axes.Axes
+    fig, ax
     """
     gs_genes = set(gs_genes)
     genes_in_df = gs_genes & set(df.index)
@@ -703,30 +860,28 @@ def plot_gene_P_bars(
     gene_label_colors: dict | None = None,
 ):
     """
-    Per-cluster waterfall bars showing each gene's loading within each cluster.
-
-    Genes are ranked by loading within each cluster and drawn as horizontal
-    bars colored by cluster.
+    Per cluster, the P of each gene set gene, as sorted horizontal bars.
 
     Parameters
     ----------
-    P_gs : np.ndarray, shape (n_gs, K)
-        Gene-set rows of the aligned P matrix.
-    gene_set : list of str
-        Gene names corresponding to rows of ``P_gs``.
-    cluster_labels : list of str
-        Labels for each cluster (columns of ``P_gs``).
-    colors : list of str
-        One color per cluster used to fill the bars.
-    top_n : int or None
-        If set and ``n_gs > top_n``, each cluster panel shows only the
-        top-``top_n`` genes by per-cluster P.  Default ``None`` (show all).
+    P_gs
+        Gene set rows of the P matrix (n_gs, K).
+    gene_set
+        Gene names of the P_gs rows.
+    cluster_labels
+        Cluster labels.
+    colors
+        Color per cluster.
+    top_n
+        Show only the top_n genes per cluster; None shows all.
+    gene_label_colors
+        {gene: color} for the gene labels.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-    axes : np.ndarray of matplotlib.axes.Axes
-        Array of K axes, one per cluster.
+    fig
+    axes
+        One Axes per cluster.
     """
     n_gs = P_gs.shape[0]
     K    = P_gs.shape[1]
@@ -765,39 +920,31 @@ def plot_per_cluster_P(
     dpi: int = 150,
 ):
     """
-    Super-figure with 1 + K subpanels.
-
-    Top row (1 panel spanning all columns):
-        Scatter of mean gene-set P per cluster overlaid on boxplots of the
-        null distribution (from ``sample_null_P``), sorted by observed mean P
-        descending.  Each cluster is coloured accordingly.  Y-axis is log scale.
-        If ``null_mean_P`` is None, only the scatter is drawn.
-    Bottom row (K panels):
-        Per-cluster waterfall plots (gene loadings, cumulative rectangles).
+    Gene set mean P per cluster against the null (top), and per-cluster gene bars (bottom, as in `plot_gene_P_bars`).
 
     Parameters
     ----------
-    P_gs : np.ndarray, shape (n_genes, K)
-        Gene-set rows of the aligned P matrix.
-    gene_set : list of str
-        Gene names corresponding to rows of P_gs.
-    cluster_labels : list of str
-        Labels for each cluster (columns of P_gs).
-    colors : list of str
-        One colour per cluster.
-    null_mean_P : np.ndarray, shape (n_perm, K), optional
-        Null mean loading vectors from ``sample_null_P``.  If provided, a
-        boxplot of the null distribution is drawn behind the scatter.
-    gs_title : str
-        Optional title prefix for the top panel.
-    dpi : int
-        Figure resolution. Default 150.
+    P_gs
+        Gene set rows of the P matrix (n_gs, K).
+    gene_set
+        Gene names of the P_gs rows.
+    cluster_labels
+        Cluster labels.
+    colors
+        Color per cluster.
+    null_mean_P
+        Output of `sample_null_P`; None leaves out the null.
+    gs_title
+        Title prefix.
+    dpi
+        Figure resolution.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-    ax_top : matplotlib.axes.Axes
-    axes_bottom : list of matplotlib.axes.Axes, length K
+    fig
+    ax_top
+    axes_bottom
+        One Axes per cluster.
     """
     P_gs = np.asarray(P_gs, dtype=float)
     n_genes, K = P_gs.shape
@@ -894,38 +1041,35 @@ def plot_gene_P_stacked(
     figsize: Tuple[float, float] = (6, 4),
     dpi: int = 150,
 ):
-    """Stacked bar chart of per-gene P values across clusters.
+    """
+    Stacked bar chart of the P of each gene set gene, one bar per cluster.
 
     Parameters
     ----------
-    P_gs : np.ndarray
-        Shape (n_gs, K). Gene-set rows of the P matrix.
-    gene_set : list of str
-        Gene names corresponding to rows of P_gs.
-    cluster_labels : list of str
-        Labels for each cluster (columns of P_gs).
-    gs_title : str
-        Title prefix for the plot. Default ``""``.
-    log_scale : bool
-        If True, use a log y-axis. Default True.
-    sort_by_sum : bool
-        If True, sort clusters in descending order of total P sum. Default False.
-    top_n : int or None
-        If set and ``n_gs > top_n``, restrict to the top-``top_n`` genes by
-        total P across clusters (before any cluster sorting).  Default ``None``
-        (show all genes).
-    gene_colors : list or None
-        One color per gene (after any ``top_n`` subsetting).  If ``None``
-        (default), colors are drawn from the ``tab20`` colormap.
-    figsize : tuple of (float, float)
-        Figure size in inches. Default ``(6, 4)``.
-    dpi : int
-        Figure resolution. Default 150.
+    P_gs
+        Gene set rows of the P matrix (n_gs, K).
+    gene_set
+        Gene names of the P_gs rows.
+    cluster_labels
+        Cluster labels.
+    gs_title
+        Title prefix.
+    log_scale
+        Use a log y-axis.
+    sort_by_sum
+        Sort clusters by total P (descending).
+    top_n
+        Show only the top_n genes by total P; None shows all.
+    gene_colors
+        Color per gene; None uses tab20.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-    ax : matplotlib.axes.Axes
+    fig, ax
     """
     gene_set = list(gene_set)
     n_gs = P_gs.shape[0]
@@ -940,7 +1084,7 @@ def plot_gene_P_stacked(
         cluster_labels = [cluster_labels[i] for i in order]
 
     tab_colors = (gene_colors if gene_colors is not None
-                  else plt.cm.get_cmap("tab20", len(gene_set)).colors)
+                  else plt.get_cmap("tab20", len(gene_set)).colors)
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     bottom = np.zeros(P_gs.shape[1])
     for i in range(P_gs.shape[0]):
@@ -986,80 +1130,55 @@ def plot_seplfc_bipartite(
     dpi: int = 150,
     ax=None,
 ):
-    """Bipartite diagram where each gene's single segment sits on the one edge
-    that corresponds to its own best cluster separation (``sepLFC`` in
-    ``df_mode``).
+    """
+    Diagram of the gene set's high (top) and low (bottom) clusters, with the top genes drawn on the cluster pair at their own largest gap.
 
-    Unlike the older bipartite approach that assigns every gene to every
-    H-L edge based on ``P_gs``, this function:
-
-    1. For each gene, finds the boundary pair ``(A, B)`` where A is the
-       lowest-P cluster in the gene's upper group and B is the highest-P
-       cluster in the gene's lower group (adjacent clusters across the max gap).
-    2. Keeps only genes whose boundary pair has A ∈ ``sepH`` and B ∈ ``sepL``.
-    3. On each edge ``(A, B)``, selects the top ``top_n_per_pair`` genes by
-       their ``df_mode.sepLFC`` value.
-    4. Draws each selected gene as a single segment on its assigned edge.
-
-    All arrows point from sepH toward sepL (LFC is always positive by
-    construction).
+    Each gene is placed on the pair (A, B), where A is its lowest high cluster and B its highest low cluster; only genes with A in sepH and B in sepL are shown.
 
     Parameters
     ----------
-    gene_set : list of str
-        Gene names (must be a subset of ``df_mode.index``).
-    sepH : list of int
-        Cluster indices in the high group (top row nodes).
-    sepL : list of int
-        Cluster indices in the low group (bottom row nodes).
-    cluster_labels : list of str
-        Labels for all K clusters.
-    df_mode : pd.DataFrame
-        Feature-metrics DataFrame (from ``compute_feature_metrics`` /
-        ``compute_all_feature_metrics``) indexed by gene name, with columns
-        ``sepLFC`` and ``sepCls``.
-    top_n_per_pair : int
-        Maximum number of genes to show per (sepH, sepL) edge. Default 5.
-    gs_title : str
+    gene_set
+        Gene names.
+    sepH
+        High cluster indices.
+    sepL
+        Low cluster indices.
+    cluster_labels
+        Cluster labels.
+    df_mode
+        Feature metrics of the mode, indexed by gene name.
+    top_n_per_pair
+        Maximum number of genes per cluster pair.
+    gs_title
         Title prefix.
-    lw_scale : float
-        Maximum line width (for the edge with the largest total sepLFC).
-    min_lw : float
-        Minimum line width.
-    seg_gap : float
-        Gap at each end of every gene segment (in t-space). Default 0.008.
-    label_mode : str
-        Controls gene-name labels on segments. One of:
-
-        * ``"all"``  – label every segment regardless of size.
-        * ``"auto"`` – label only segments whose fraction of the edge total
-          exceeds ``1 / top_n_per_pair`` (i.e. roughly the equal-share
-          threshold). Default.
-        * ``"none"`` – suppress all labels.
-    label_fontsize : float
-        Font size for gene-name labels. Default 7.0.
-    arrow_fan : float
-        Half-width (in data units) of the fan applied at each node so
-        arrowheads from different edges spread out. Default 0.06.
-    cmap : str
-        Matplotlib colormap name used to color segments by ``sepLFC``.
-        Default ``"Spectral"``.
-    vmin, vmax : float or None
-        Colormap range. ``None`` → inferred from the selected genes' sepLFC
-        values.
-    colors : list or None
-        Per-cluster colors for node fill (indexed by cluster index).
-    figsize : tuple of (float, float)
-        Figure size in inches. Default ``(8, 4)``.
-    dpi : int
-        Figure resolution. Default 150.
-    ax : matplotlib.axes.Axes, optional
-        Draw into an existing axes if provided.
+    lw_scale
+        Largest line width.
+    min_lw
+        Smallest line width.
+    seg_gap
+        Gap between gene segments.
+    label_mode
+        Gene labels: "all", "none", or "auto" (segments above an equal share).
+    label_fontsize
+        Font size of the gene labels.
+    arrow_fan
+        Spread of arrowheads at each node.
+    cmap
+        Colormap of sepLFC.
+    vmin, vmax
+        Range of the color scale; None uses the data.
+    colors
+        Color per cluster.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-    ax  : matplotlib.axes.Axes
+    fig, ax
     """
     sepH_set = set(sepH)
     sepL_set = set(sepL)
@@ -1108,7 +1227,7 @@ def plot_seplfc_bipartite(
     _vmax = vmax if vmax is not None else (max(_all_lfcs) if _all_lfcs else 1.0)
     if _vmin == _vmax:
         _vmin, _vmax = _vmin - 1, _vmax + 1
-    _cmap = plt.cm.get_cmap(cmap)
+    _cmap = plt.get_cmap(cmap)
     norm = mcolors.Normalize(vmin=_vmin, vmax=_vmax)
 
     # ── Layout ────────────────────────────────────────────────────────────────
@@ -1265,11 +1384,9 @@ def plot_seplfc_bipartite(
 
 def plot_gene_lfc(
     df_gene_lfc: pd.DataFrame,
-    cluster_labels: List[str],
     sepL: List[int],
     sepH: List[int],
     gs_sepLFC: float,
-    colors: List[str],
     figsize: Tuple[float, float] = (5, 3),
     dpi: int = 150,
     ax=None,
@@ -1278,46 +1395,34 @@ def plot_gene_lfc(
     show_labels: bool | None = None,
 ):
     """
-    Horizontal bar chart of per-gene LFC between high and low cluster groups.
-
-    Bars are colored on a diverging coolwarm scale centered on zero and
-    saturated at ±``gs_sepLFC``.
+    Bar chart of each gene's LFC between the high and low clusters.
 
     Parameters
     ----------
-    df_gene_lfc : pd.DataFrame
-        Output of ``compute_gene_lfc`` with columns ``gene`` and ``LFC``.
-    cluster_labels : list of str
-        Not currently used; retained for API compatibility.
-    sepL : list of int
-        Cluster indices in the low group.
-    sepH : list of int
-        Cluster indices in the high group.
-    gs_sepLFC : float
-        Observed gene-set sepLFC; sets the colorbar saturation limits.
-    colors : list of str
-        Not currently used; retained for API compatibility.
-    figsize : tuple of (float, float)
-        Figure size in inches. Default ``(5, 3)``.
-    dpi : int
-        Figure resolution. Default 150.
-    ax : matplotlib.axes.Axes, optional
-        Draw into an existing axes if provided.
-    kind : {"extreme", "mean"}
-        Determines the x-axis label: ``"extreme"`` labels min/max of group P;
-        ``"mean"`` labels mean of group P. Default ``"mean"``.
-    top_n : int or None
-        If set and the number of genes exceeds ``top_n``, restrict to the
-        top-``top_n`` genes by absolute LFC.  Default ``None`` (show all).
-    show_labels : bool or None
-        Whether to draw gene-name tick labels on the y-axis.  If ``None``
-        (default), labels are shown when ``top_n`` is set or when
-        ``n_genes <= 30``; hidden otherwise.
+    df_gene_lfc
+        Output of `compute_gene_lfc`.
+    sepL
+        Low cluster indices.
+    sepH
+        High cluster indices.
+    gs_sepLFC
+        Gene set sepLFC; sets the color scale limits.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    ax
+        Axes to draw on; None creates a figure.
+    kind
+        "extreme" or "mean", as used in `compute_gene_lfc` (sets the axis label).
+    top_n
+        Show only the top_n genes by |LFC|; None shows all.
+    show_labels
+        Show gene names; None shows them if top_n is set or there are at most 30 genes.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-    ax : matplotlib.axes.Axes
+    fig, ax
     """
     df = df_gene_lfc.copy()
 
@@ -1339,7 +1444,7 @@ def plot_gene_lfc(
 
     y          = np.arange(len(df))
     norm       = mcolors.Normalize(vmin=-gs_sepLFC, vmax=gs_sepLFC, clip=True)
-    cmap       = plt.cm.get_cmap("coolwarm")
+    cmap       = plt.get_cmap("coolwarm")
     bar_colors = [cmap(norm(v)) for v in df["LFC"]]
     ax.barh(y, df["LFC"], color=bar_colors, edgecolor="none")
 
@@ -1349,7 +1454,6 @@ def plot_gene_lfc(
     else:
         ax.set_yticks([])
 
-    # detail = "min/max of group" if kind == "extreme" else "mean of group"
     ax.set_xlabel(f"LFC of [{high_str}] vs. [{low_str}]")
     ax.set_title("Per-gene LFC between gene-set's clusters")
     fig.tight_layout()
@@ -1357,24 +1461,7 @@ def plot_gene_lfc(
 
 
 def _mode_cluster_labels(results, mode, cb_cmap):
-    """Return ``(labels, colors)`` for a given mode.
-
-    Parameters
-    ----------
-    results : ClumpplingResults
-        Alignment results with ``mode_K`` and ``modes`` attributes.
-    mode : str
-        Mode name to look up.
-    cb_cmap : list
-        Per-cluster color list; the first K entries are returned.
-
-    Returns
-    -------
-    labels : list of str
-        Cluster labels ``["Cls.1", ..., "Cls.K"]``.
-    colors : list
-        First K entries of ``cb_cmap``.
-    """
+    """Cluster labels ("Cls.1", ...) and colors of a mode."""
     # check if results.mode_K is a dict or list and get K for this mode
     if isinstance(results.mode_K, dict):
         K = results.mode_K[mode]
@@ -1385,26 +1472,20 @@ def _mode_cluster_labels(results, mode, cb_cmap):
 
 def plot_P_enrichment_grid(res_by_mode, ax_by_mode, results, cb_cmap, kind="pval"):
     """
-    Fill a mode-grid figure with per-cluster P enrichment bars.
-
-    Iterates over modes and calls either ``plot_P_enrichment_pval`` or
-    ``plot_P_enrichment_zscore`` into the corresponding axes.
+    P enrichment bars of each mode, drawn into a grid of Axes.
 
     Parameters
     ----------
-    res_by_mode : dict
-        Output of ``run_gs_enrichment``; must contain a ``"p_res"``
-        key for each mode.
-    ax_by_mode : dict
-        Mapping ``mode -> matplotlib.axes.Axes``, e.g. from
-        ``make_mode_grid_by_K``.
-    results : ClumpplingResults
-        Used to look up K and generate cluster labels via
-        ``_mode_cluster_labels``.
-    cb_cmap : list
-        Per-cluster color list passed to ``_mode_cluster_labels``.
-    kind : {"pval", "zscore"}
-        Whether to plot empirical p-values or z-scores. Default ``"pval"``.
+    res_by_mode
+        Output of `run_gs_enrichment`.
+    ax_by_mode
+        {mode name: Axes}, e.g. from `make_mode_grid_by_K`.
+    results
+        Clumppling results, for K of each mode.
+    cb_cmap
+        Color per cluster.
+    kind
+        "pval" or "zscore".
     """
     plot_fn = plot_P_enrichment_pval if kind == "pval" else plot_P_enrichment_zscore
     for mode, ax in ax_by_mode.items():
@@ -1419,22 +1500,18 @@ def plot_P_enrichment_grid(res_by_mode, ax_by_mode, results, cb_cmap, kind="pval
 
 def plot_LFC_enrichment_grid(res_by_mode, ax_by_mode, results, cb_cmap):
     """
-    Fill a mode-grid figure with pairwise LFC z-score heatmaps.
-
-    Iterates over modes and calls ``plot_pairwise_heatmap`` with the LFC
-    z-score matrix into the corresponding axes.
+    Pairwise LFC z-score heatmaps of each mode, drawn into a grid of Axes.
 
     Parameters
     ----------
-    res_by_mode : dict
-        Output of ``run_gs_enrichment``; must contain a ``"lfc_res"``
-        key for each mode.
-    ax_by_mode : dict
-        Mapping ``mode -> matplotlib.axes.Axes``.
-    results : ClumpplingResults
-        Used to look up K and generate cluster labels.
-    cb_cmap : list
-        Per-cluster color list (passed to ``_mode_cluster_labels``).
+    res_by_mode
+        Output of `run_gs_enrichment`.
+    ax_by_mode
+        {mode name: Axes}, e.g. from `make_mode_grid_by_K`.
+    results
+        Clumppling results, for K of each mode.
+    cb_cmap
+        Color per cluster.
     """
     for mode, ax in ax_by_mode.items():
         labels, _ = _mode_cluster_labels(results, mode, cb_cmap)
@@ -1447,26 +1524,20 @@ def plot_LFC_enrichment_grid(res_by_mode, ax_by_mode, results, cb_cmap):
 
 def plot_sepLFC_enrichment_grid(res_by_mode, ax_by_mode, results, cb_cmap, kind="null_sep"):
     """
-    Fill a mode-grid figure with sepLFC null-distribution plots.
-
-    Iterates over modes and calls either ``plot_sepLFC_null_sep``
-    or ``plot_sepLFC_null_fixed`` into the corresponding axes.
+    sepLFC null histograms of each mode, drawn into a grid of Axes.
 
     Parameters
     ----------
-    res_by_mode : dict
-        Output of ``run_gs_enrichment``; must contain a ``"sep_res"``
-        key for each mode.
-    ax_by_mode : dict
-        Mapping ``mode -> matplotlib.axes.Axes``.
-    results : ClumpplingResults
-        Used to look up K and generate cluster labels.
-    cb_cmap : list
-        Per-cluster color list (passed to ``_mode_cluster_labels``).
-    kind : {"null_sep", "null_fixed"}
-        Which null comparison to visualize.  ``"null_sep"`` compares to each
-        random set's own best sepLFC; ``"null_fixed"`` compares to the null
-        evaluated at the observed bipartition. Default ``"null_sep"``.
+    res_by_mode
+        Output of `run_gs_enrichment`.
+    ax_by_mode
+        {mode name: Axes}, e.g. from `make_mode_grid_by_K`.
+    results
+        Clumppling results, for K of each mode.
+    cb_cmap
+        Color per cluster.
+    kind
+        "null_sep" (`plot_sepLFC_null_sep`) or "null_fixed" (`plot_sepLFC_null_fixed`).
     """
     for mode, ax in ax_by_mode.items():
         labels, _ = _mode_cluster_labels(results, mode, cb_cmap)
@@ -1489,36 +1560,30 @@ def plot_P_enrichment_by_cluster(
     sig_threshold=None,
 ):
     """
-    One subplot per cluster; each panel shows that cluster's P enrichment
-    across all modes that contain it.
+    P enrichment of each cluster across modes, one panel per cluster.
 
     Parameters
     ----------
-    res_by_mode : dict
-        Output of ``run_gs_enrichment``; each value contains a ``"p_res"``
-        dict with ``"p_emp"`` and ``"z"`` arrays of length K for that mode.
-    results : ClumpplingResults
-        Used to look up K per mode (via ``mode_K`` and ``modes``).
-    cb_cmap : list
-        Per-cluster colour list; cluster k gets ``cb_cmap[k]``.
-    kind : {"pval", "zscore"}
-        ``"pval"`` plots -log10(p_emp); ``"zscore"`` plots the z-score.
-        Default ``"pval"``.
-    ncols : int or None
-        Columns in the subplot grid. Defaults to K_max.
-    figsize_per_panel : (float, float)
-        Width × height for each individual subplot.
-    dpi : int
-    sig_threshold : float or None
-        Threshold for the reference line.  For ``"pval"``, a horizontal line
-        is drawn at -log10(sig_threshold); defaults to ``0.05``.  For
-        ``"zscore"``, lines are drawn at ±sig_threshold; defaults to ``2``.
-        Pass ``None`` to use the kind-appropriate default.
+    res_by_mode
+        Output of `run_gs_enrichment`.
+    results
+        Clumppling results, for K of each mode.
+    cb_cmap
+        Color per cluster.
+    kind
+        "pval" (-log10 p_emp) or "zscore".
+    ncols
+        Number of columns; None uses K_max.
+    figsize_per_panel
+        (width, height) of each panel, in inches.
+    dpi
+        Figure resolution.
+    sig_threshold
+        Reference line: p-value for "pval" (default 0.05), |z| for "zscore" (default 2).
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-    axes : np.ndarray of matplotlib.axes.Axes, shape (nrows, ncols)
+    fig, axes
     """
     modes = results.modes
     mode_K_lookup = {
@@ -1613,49 +1678,30 @@ def plot_sepLFC_distribution_heatmap(
     annotate_pval=False,
 ):
     """
-    Heatmap summary of the null sepLFC distribution across all modes.
-
-    Each row is one mode; colour encodes the density of the null distribution
-    in each histogram bin.  The observed gene-set sepLFC is overlaid as a red
-    dot on each row, making enrichment strength and consistency across modes
-    visible at a glance.
+    Null sepLFC distribution of each mode as a heatmap row, with the gene set's sepLFC marked.
 
     Parameters
     ----------
-    res_by_mode : dict
-        Output of ``run_gs_enrichment``; each value must contain a
-        ``"sep_res"`` dict.
-    n_bins : int
-        Number of histogram bins shared across all modes. Default ``60``.
-    cmap : str or Colormap
-        Colormap for the density heatmap. Default ``"Blues"``.
-    figsize : (float, float)
-        ``(width, height_per_row)``; total figure height is
-        ``height_per_row × n_modes``.
-    dpi : int
-    kind : {"null_sep", "null_fixed"}
-        Which null distribution to display.
-        ``"null_sep"`` (default) uses the best-sepLFC null (``null_sepLFC``).
-        ``"null_fixed"`` uses the fixed-cluster-group null (``null_lfc_at_sep``).
-    pval_threshold : float or None
-        If set to a value ``> 0``, the empirical one-sided p-value
-        (fraction of null ≥ observed) is computed for each mode.  When the
-        p-value is below ``pval_threshold`` the observed point is shown as a
-        star (``*``) instead of a dot.  Set to ``<= 0`` (or leave as ``None``)
-        to always show a dot regardless of significance.
-    annotate_pval : bool
-        If ``True``, the empirical p-value is printed in scientific notation
-        to the right of each observed dot.  The x-axis right limit is
-        expanded automatically so the text stays within the frame.
-        Requires ``pval_threshold`` to be set (or any positive value) to
-        trigger p-value computation; if ``pval_threshold`` is ``None`` or
-        ``<= 0`` and ``annotate_pval`` is ``True``, p-values are still
-        computed but the star logic is skipped.  Default ``False``.
+    res_by_mode
+        Output of `run_gs_enrichment`.
+    n_bins
+        Number of histogram bins.
+    cmap
+        Colormap.
+    figsize
+        (width, height per row).
+    dpi
+        Figure resolution.
+    kind
+        "null_sep" (best sepLFC of each random gene set) or "null_fixed" (LFC at the observed split).
+    pval_threshold
+        Mark modes with an empirical p-value below this with a star; None or <= 0 disables.
+    annotate_pval
+        Write the empirical p-value next to each mark.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-    ax : matplotlib.axes.Axes
+    fig, ax
     """
     if kind not in ("null_sep", "null_fixed"):
         raise ValueError(f"kind must be 'null_sep' or 'null_fixed', got {kind!r}")

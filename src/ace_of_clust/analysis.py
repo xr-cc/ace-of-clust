@@ -1,10 +1,4 @@
-"""
-analysis.py
-
-Functions for organizing, processing, and analyzing clumppling results.
-Core profile/feature metrics and alignment mapping.
-
-"""
+"""Feature metrics, mode subsets and cluster mappings between modes."""
 
 from __future__ import annotations
 
@@ -25,20 +19,19 @@ def subset_results(
     modes_subset: Sequence[str],
 ) -> ClumpplingResults:
     """
-    Return a new ClumpplingResults object containing only a subset of modes.
+    Restrict a ClumpplingResults to a subset of modes.
 
     Parameters
     ----------
-    results : ClumpplingResults
-        Original full results.
-    modes_subset : sequence of str
-        Mode names to keep (must exist in results.Q_by_mode).
+    results
+        Full results.
+    modes_subset
+        Mode names to keep.
 
     Returns
     -------
-    subset : ClumpplingResults
-        New object with the same fields as the original, but restricted
-        to the selected modes.
+    ClumpplingResults
+        New results with only the selected modes.
     """
     # ---- Normalize + validate modes_subset ----
     modes_subset = list(dict.fromkeys(modes_subset))  # dedupe, keep order
@@ -182,21 +175,25 @@ def subset_results(
 
 def compute_profile(P: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
-    Compute clustering profile for feature-level P.
+    Sort each feature's P values and compute log2 ratios between neighbors.
+
+    Zeros in P are replaced by the smallest positive value so that log2 stays finite.
 
     Parameters
     ----------
-    P : array-like, shape (M, K)
-        Per-feature values over clusters (e.g. log-P or scores).
+    P
+        P matrix (n_features, K).
 
     Returns
     -------
-    LFC_sorted : (M, K-1)
-        Log2 fold-changes between consecutive sorted values per feature.
-    idx_sorted : (M, K)
-        Indices of clusters sorted per feature (ascending).
+    LFC_sorted
+        Log2 ratios between consecutive sorted values (n_features, K-1).
+    idx_sorted
+        Cluster indices sorting each row in ascending order (n_features, K).
     """
     K = P.shape[1]
+    # P can contain exact zeros (e.g. from NMF); treat them as near-zero so log2 stays finite
+    P = np.where(P == 0, P[P > 0].min(initial=1e-14), P)
     P_sorted = np.sort(P, axis=1)
     idx_sorted = np.argsort(P, axis=1)
     # log2 ratio between consecutive sorted entries
@@ -209,22 +206,21 @@ def get_sepLFC(
     idx_sorted: np.ndarray,
 ) -> tuple[np.ndarray, list[tuple[tuple[int, ...], tuple[int, ...]]]]:
     """
-    Compute sepLFC and sepCls from clustering profile.
+    Compute sepLFC and sepCls from a sorted profile.
 
     Parameters
     ----------
-    LFC_sorted : np.ndarray
-        Log2 fold-changes between consecutive sorted values per feature.
-    idx_sorted : np.ndarray
-        Indices of clusters sorted per feature (ascending).
+    LFC_sorted
+        Output of `compute_profile`.
+    idx_sorted
+        Output of `compute_profile`.
 
     Returns
     -------
-    sepLFC : np.ndarray
-        Maximum log2 fold-change per feature.
-    sepCls : list of tuples
-        Each tuple contains two tuples representing the indices of clusters
-        on each side of the maximum gap, in original cluster indices.
+    sepLFC
+        Largest log2 ratio per feature.
+    sepCls
+        Per feature, (low clusters, high clusters) on either side of the largest gap.
     """
     # index of max gap (in sorted-order coordinates)
     idx_sepLFC = np.argmax(LFC_sorted, axis=1)
@@ -244,19 +240,19 @@ def get_sepLFC(
 
 def compute_weighted_Psum(P: np.ndarray, Q: np.ndarray) -> np.ndarray:
     """
-    Compute a weighted sum of P across clusters, using cluster weights from Q.
+    Sum P across clusters, weighted by cluster size.
 
     Parameters
     ----------
-    P : np.ndarray
-        Feature-by-cluster loadings.
-    Q : np.ndarray
-        Cell-by-cluster memberships (aligned).
+    P
+        P matrix (n_features, K).
+    Q
+        Aligned Q matrix (n_cells, K); its column sums give the cluster sizes.
 
     Returns
     -------
-    weighted_Psum : np.ndarray
-        Weighted sum of P across clusters.
+    np.ndarray
+        weighted_Psum per feature.
     """
     cls_wt = np.sum(Q, axis=0)
     cls_wt /= np.sum(cls_wt)
@@ -270,29 +266,26 @@ def compute_feature_metrics(
     feature_names: Sequence[str],
 ) -> pd.DataFrame:
     """
-    Compute sepLFC, sepCls, and weighted_Psum for a single mode.
+    Compute weighted_Psum, sepLFC and sepCls for one mode.
 
     Parameters
     ----------
-    P : array, shape (n_features, K)
-        Feature-by-cluster loadings.
-    Q : array, shape (n_cells, K)
-        Cell-by-cluster memberships (aligned).
-    feature_names : sequence of str
-        Names for each row of P (e.g. gene IDs/symbols). Must have length
-        equal to P.shape[0].
+    P
+        P matrix (n_features, K).
+    Q
+        Aligned Q matrix (n_cells, K).
+    feature_names
+        Names of the P rows.
 
     Returns
     -------
-    df : DataFrame
-        Index = feature_names
-        Columns = ["weighted_Psum", "sepLFC", "sepCls"]
+    pd.DataFrame
+        Indexed by feature name, with columns weighted_Psum, sepLFC and sepCls.
     """
     if P.shape[0] != len(feature_names):
         raise ValueError(
             f"P.shape[0] ({P.shape[0]}) != len(feature_names) ({len(feature_names)})"
         )
-    # avoid log2(0)
     if np.any(P < 0):
         raise ValueError("P contains negative values; cannot compute log.")
     LFC_sorted, idx_sorted = compute_profile(P)
@@ -318,20 +311,19 @@ def compute_all_feature_metrics(
     feature_names: Sequence[str],
 ) -> Dict[str, pd.DataFrame]:
     """
-    Compute feature-level metrics (weighted_Psum, sepLFC, sepCls) for all modes.
+    Compute feature metrics for all modes.
 
     Parameters
     ----------
-    results : ClumpplingResults
-        Must have P_aligned_by_mode populated (i.e. load_clumppling_results
-        was called with cls_dir=...).
-    feature_names : sequence of str
-        Names for each row of P (e.g. gene IDs/symbols).
+    results
+        Results loaded with P matrices.
+    feature_names
+        Names of the P rows.
 
     Returns
     -------
-    df_by_mode : dict
-        {mode_name -> DataFrame as returned by compute_feature_metrics}
+    dict
+        {mode name: DataFrame from `compute_feature_metrics`}.
     """
     if results.P_aligned_by_mode is None:
         raise ValueError(
@@ -354,25 +346,23 @@ def select_top_features(
     top_quantile: float = 0.1,
 ) -> Tuple[Dict[str, pd.DataFrame], pd.DataFrame, set]:
     """
-    For each mode, select the top features by weighted_Psum and related information.
+    Select the top features by weighted_Psum in each mode.
 
     Parameters
     ----------
-    df_by_mode : mapping
-        {mode_name -> feature metrics DataFrame}.
-    top_quantile : float, default 0.1
-        We keep features with weighted_Psum above this upper quantile
-        (i.e. the top (1 - top_quantile) fraction).
+    df_by_mode
+        {mode name: feature metrics DataFrame}.
+    top_quantile
+        Fraction of features to keep in each mode.
 
     Returns
     -------
-    selected_by_mode : dict
-        {mode_name -> DataFrame of selected features, with columns suffixed
-         by f"_{mode_name}"}.
-    df_selected_all : DataFrame
-        Inner join of all per-mode selected DataFrames.
-    overlap : set
-        Set of feature names present in all per-mode selections.
+    selected_by_mode
+        {mode name: selected features}, with columns suffixed by "_{mode name}".
+    df_selected_all
+        Inner join of all selections.
+    overlap
+        Features selected in every mode.
     """
     selected_by_mode: Dict[str, pd.DataFrame] = {}
     df_selected_list: List[pd.DataFrame] = []
@@ -410,31 +400,28 @@ def analyze_sep_genes(
     gene_set: List[str],
     top_n: int = 10,
 ) -> pd.DataFrame:
-    """Summarise which genes in *gene_set* match a given (sepH, sepL) split.
+    """
+    Find genes of a gene set whose sepCls matches a (sepH, sepL) split.
 
-    Prints the number of genes in *df_mode* whose ``sepCls`` matches the split
-    exactly (ordered) and as an unordered set, then returns a DataFrame of the
-    top *top_n* genes from *gene_set* ranked by ``sepLFC``.
+    Prints the number of matching genes (ordered and unordered match) and returns the top ones by sepLFC.
 
     Parameters
     ----------
-    df_mode : pd.DataFrame
-        Feature-metrics DataFrame indexed by gene name (from
-        ``compute_feature_metrics`` / ``compute_all_feature_metrics``).
-    sepH : sequence of int
-        Cluster indices in the high group.  Accepts lists, tuples, or arrays.
-    sepL : sequence of int
-        Cluster indices in the low group.  Accepts lists, tuples, or arrays.
-    gene_set : list of str
-        Gene names to filter and rank.
-    top_n : int
-        Number of top genes to return. Default 10.
+    df_mode
+        Feature metrics of one mode, indexed by gene name.
+    sepH
+        High cluster indices.
+    sepL
+        Low cluster indices.
+    gene_set
+        Gene names to rank.
+    top_n
+        Number of genes to return.
 
     Returns
     -------
     pd.DataFrame
-        Rows for the top *top_n* matching genes, columns
-        ``['sepLFC', 'sepCls', 'weighted_Psum']``.
+        Top matching genes, with columns sepLFC, sepCls and weighted_Psum.
     """
     import itertools
 
@@ -474,10 +461,7 @@ def analyze_sep_genes(
 def _build_alignment_graph(
     alignment_acrossK: Mapping[str, Sequence[int]],
 ) -> Dict[str, List[str]]:
-    """
-    Build a directed graph where each key "A-B" gives an edge B -> A,
-    since mapping[k_B] = k_A maps clusters in B to clusters in A.
-    """
+    """Build a directed graph with an edge B -> A for each key "A-B"."""
     from collections import defaultdict
 
     graph: Dict[str, List[str]] = defaultdict(list)
@@ -493,10 +477,7 @@ def _find_directed_path(
     src: str,
     dst: str,
 ) -> List[str] | None:
-    """
-    BFS to find a path from src to dst in a directed graph (edges in graph[src]).
-    Returns a list [src, ..., dst], or None if no path.
-    """
+    """Find a path from src to dst by breadth-first search; None if there is none."""
     from collections import deque
 
     q = deque([src])
@@ -526,30 +507,21 @@ def _find_directed_path(
 
 def get_mode_pair_mappings(mode_names, all_modes_alignment, alignment_acrossK):
     """
-    For each pair of modes (A, B), compute the mapping from clusters in B to clusters
-    in A, in *aligned column space*, using paths through intermediate modes.
+    Map clusters between every pair of modes, through intermediate modes if needed.
 
     Parameters
     ----------
-    mode_names : list of str
-        Modes you care about (e.g. sorted list of all_modes_alignment.keys()).
-    all_modes_alignment : dict
-        {mode_name -> reordering}, where `reordering` is the alignment pattern
-        used for columns in that mode (same object you indexed in your plots).
-    alignment_acrossK : dict
-        {"A-B" -> mapping}, where for key "A-B", `mapping[k_B] = k_A` maps
-        original cluster index in mode B to original index in mode A.
+    mode_names
+        Mode names.
+    all_modes_alignment
+        {mode name: column order after alignment}.
+    alignment_acrossK
+        {"A-B": mapping}, where mapping[k_B] = k_A in original cluster indices.
 
     Returns
     -------
-    pair_mappings : dict
-        {
-          "A-B": [(col_idx_in_A, col_idx_in_B), ...],
-          ...
-        }
-        All indices are in the *current aligned column order* (after alignment),
-        i.e. x-axis column indices in your plots.
-        For each pair, the mapping is from clusters of B → clusters of A.
+    dict
+        {"A-B": [(column in A, column in B), ...]}, in aligned column indices.
     """
     # directed graph: edges B -> A for key "A-B"
     graph = _build_alignment_graph(alignment_acrossK)
@@ -620,22 +592,22 @@ def map_alt_to_ref(
     pair_mapping: Sequence[Tuple[int, int]],
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Map alt_Q into ref_Q space using pair_mapping.
+    Map an alternative Q matrix onto the clusters of a reference Q matrix.
 
     Parameters
     ----------
-    ref_Q : np.ndarray
-        Reference membership matrix (n_cells, ref_K).
-    alt_Q : np.ndarray
-        Alternative membership matrix (n_cells, alt_K), where ref_K <= alt_K.
-    pair_mapping : Sequence[Tuple[int, int]]
-        Mapping pairs (i_ref, j_alt) indicating how clusters in alt_Q map to clusters in ref_Q.
+    ref_Q
+        Reference Q matrix (n_cells, ref_K).
+    alt_Q
+        Alternative Q matrix (n_cells, alt_K), with alt_K >= ref_K.
+    pair_mapping
+        (reference column, alternative column) pairs.
 
     Returns
     -------
-    alt_Q_mapped : np.ndarray
-        Mapped alternative membership matrix (n_cells, ref_K).
-    diff_Q : np.ndarray
+    alt_Q_mapped
+        Alternative Q matrix summed into the reference clusters (n_cells, ref_K).
+    diff_Q
         Absolute difference between ref_Q and alt_Q_mapped.
     """
     if ref_Q.ndim != 2 or alt_Q.ndim != 2:
@@ -674,23 +646,21 @@ def map_alt_to_ref(
 
 def compute_profile_unnorm(P: np.ndarray):
     """
-    Sort cluster values and compute log2 ratios between consecutive sorted entries.
+    Same as `compute_profile`, for any matrix of non-negative values (e.g. null mean-P vectors).
 
-    Unlike ``compute_profile``, this version does not normalise P before
-    sorting, making it suitable for operating directly on mean loading vectors
-    rather than per-feature rows of a full P matrix.
+    Adds 1e-10 before log2 instead of replacing zeros.
 
     Parameters
     ----------
-    P : np.ndarray, shape (M, K)
-        Per-row values over K clusters (e.g. null mean loading vectors).
+    P
+        Values (n_rows, K).
 
     Returns
     -------
-    LFC_sorted : np.ndarray, shape (M, K-1)
-        Log2 fold-changes between consecutive sorted values per row.
-    idx_sorted : np.ndarray, shape (M, K)
-        Column indices that sort each row in ascending order.
+    LFC_sorted
+        Log2 ratios between consecutive sorted values (n_rows, K-1).
+    idx_sorted
+        Column indices sorting each row in ascending order (n_rows, K).
     """
     P = np.asarray(P, dtype=float) + 1e-10
     idx_sorted = np.argsort(P, axis=1)

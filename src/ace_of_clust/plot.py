@@ -1,9 +1,4 @@
-"""
-plot.py
-
-Functions for visualizations.
-
-"""
+"""Plots of Clumppling results and feature metrics."""
 
 from __future__ import annotations
 
@@ -62,23 +57,22 @@ def plot_Q_heatmap(
     ax: Optional[plt.Axes] = None,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plot a heatmap of Q for a single mode.
+    Heatmap of the Q matrix of one mode.
 
     Parameters
     ----------
-    results : ClumpplingResults
-        Container with aligned Q matrices.
-    mode_name : str
-        Mode to plot (must be a key in results.Q_by_mode).
-    sort_by : {"max", "none"}, default "max"
-        If "max", sort individuals by their max cluster membership.
-        If "none", keep original row order.
-    cmap : str or Colormap, optional
-        Colormap to use in imshow (e.g. "viridis", "plasma").
-    colorbar : bool, default True
-        Whether to add a colorbar for this subplot.
-    ax : matplotlib Axes, optional
-        If provided, draw into this axes; otherwise create a new Figure.
+    results
+        Clumppling results.
+    mode_name
+        Mode name.
+    sort_by
+        "max" sorts cells by their largest membership; "none" keeps the order.
+    cmap
+        Colormap.
+    colorbar
+        Add a colorbar.
+    ax
+        Axes to draw on; None creates a figure.
 
     Returns
     -------
@@ -121,9 +115,24 @@ def plot_Q_grid(
     n_ticks: int = 8,
 ) -> Tuple[plt.Figure, np.ndarray]:
     """
-    Plot Q heatmaps for all modes in a grid, using results.mode_names_list
-    as layout (rows by K, columns by mode within each K), with a single
-    shared colorbar on the right.
+    Heatmaps of the Q matrices of all modes, one row per K, with a shared colorbar.
+
+    Parameters
+    ----------
+    results
+        Clumppling results.
+    sort_by
+        "max" sorts cells by their largest membership; "none" keeps the order.
+    cmap
+        Colormap.
+    figsize
+        Figure size; None sets it from the grid.
+    n_ticks
+        Maximum number of ticks per axis.
+
+    Returns
+    -------
+    fig, axes
     """
     n_rows = len(results.K_range)
     max_modes_per_K = max(len(row) for row in results.mode_names_list)
@@ -203,15 +212,18 @@ def plot_cluster_bars(
     ax: Optional[plt.Axes] = None,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plot bar chart of total membership per cluster for a given mode.
+    Bar chart of cluster sizes (sum of memberships) in one mode.
 
     Parameters
     ----------
-    results : ClumpplingResults
-    mode_name : str
-        Mode to plot.
-    ax : Axes, optional
-        If given, draw into this Axes.
+    results
+        Clumppling results.
+    mode_name
+        Mode name.
+    colors
+        Color per cluster.
+    ax
+        Axes to draw on; None creates a figure.
 
     Returns
     -------
@@ -257,7 +269,32 @@ def plot_cluster_scatter(
     **scatter_kwargs,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Scatter plot of 2D coordinates colored by (discrete) cluster labels.
+    Scatter plot of 2D coordinates colored by discrete cluster labels.
+
+    Parameters
+    ----------
+    coords
+        Coordinates (n_cells, 2).
+    cluster_labels
+        Label per cell.
+    cmap
+        Colormap.
+    colorbar
+        Add a colorbar.
+    xlabel, ylabel
+        Axis labels.
+    title
+        Title.
+    ax
+        Axes to draw on; None creates a figure.
+    max_colorbar_ticks
+        Maximum number of colorbar ticks.
+    **scatter_kwargs
+        Passed to `ax.scatter`.
+
+    Returns
+    -------
+    fig, ax
     """
     coords = np.asarray(coords)
     cluster_labels = np.asarray(cluster_labels)
@@ -343,41 +380,38 @@ def plot_spatial_membership(
     keep_ticks: bool = False,
 ):
     """
-    Plot a single colored scatter layer of 2D coordinates weighted by membership.
+    Scatter plot of 2D coordinates colored by the membership of one cluster.
 
     Parameters
     ----------
-    Q : array-like
-        Either an (n_cells, K) membership matrix, or an (n_cells,) vector.
-    coords : array-like
-        Either:
-          - (n_cells, 2) array of [x, y] coordinates, or
-          - tuple (x, y) of 1D arrays.
-    ref_color : color spec
-        Base color for the membership colormap (e.g. cmap(k), 'tab:blue', (r,g,b)).
-    cls_idx : int, optional
-        If Q is (n_cells, K), which column to use as membership.
-        Ignored if Q is 1D.
-    ax : matplotlib.axes.Axes, optional
-        Existing axes to draw on. If None, a new figure and axes are created.
-    val_threshold : float, default 0.0
-        Only plot points with membership > val_threshold.
-    vmin, vmax : float
-        Range of membership values for colormap normalization.
-    s : float
+    Q
+        Q matrix (n_cells, K), or memberships of one cluster (n_cells,).
+    coords
+        Coordinates (n_cells, 2), or a tuple (x, y).
+    ref_color
+        Color of full membership.
+    cls_idx
+        Cluster index, if Q is a matrix.
+    ax
+        Axes to draw on; None creates a figure.
+    val_threshold
+        Plot only cells with membership above this value.
+    vmin, vmax
+        Range of the color scale.
+    s
         Marker size.
-    alpha : float
-        Marker alpha.
-    title : str, optional
-        Title for the axis (only set if not None).
-    keep_ticks : bool, optional
-        If False (default), remove x/y ticks.
+    alpha
+        Marker transparency.
+    title
+        Title.
+    keep_ticks
+        Keep the axis ticks.
 
     Returns
     -------
-    ax : matplotlib.axes.Axes
-    sp : PathCollection
-        The scatter object.
+    ax
+    sp
+        The scatter plot.
     """
     Q = np.asarray(Q)
 
@@ -440,19 +474,20 @@ def plot_feature_scatter(
     ax: Optional[plt.Axes] = None,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Scatter plot of feature metrics, e.g. weighted_Psum vs sepLFC.
+    Scatter plot of two feature metrics (by default weighted_Psum vs. sepLFC).
 
     Parameters
     ----------
-    df : DataFrame
-        Must contain columns `x` and `y`, index = feature names.
-    mode_name : str, optional
-        For titling; purely cosmetic.
-    x, y : str
-        Column names in df to use as axes.
-    highlight : iterable of str, optional
-        Feature names (index values) to annotate.
-    ax : Axes, optional
+    df
+        Feature metrics, indexed by feature name.
+    mode_name
+        Title.
+    x, y
+        Columns to plot.
+    highlight
+        Features to label.
+    ax
+        Axes to draw on; None creates a figure.
 
     Returns
     -------
@@ -492,7 +527,7 @@ def plot_feature_scatter(
 
 
 def in_outer_contour(x: float, y: float, paths) -> bool:
-    """Return True if (x, y) lies inside ANY of the given matplotlib.path.Path objects."""
+    """Whether (x, y) lies inside any of the given contour paths."""
     pt = (x, y)
     return any(p.contains_point(pt) for p in paths)
 
@@ -520,46 +555,46 @@ def plot_feature_kde(
     dpi: int = 150,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
-    Plot a scatter + filled KDE contour + labeled outlier points for a (x, y) feature pair.
+    Scatter plot of two feature metrics over their KDE, with outliers labeled.
+
+    Labels are repelled if adjustText is installed.
+
     Parameters
     ----------
-    df : DataFrame
-        Must contain columns `x_col` and `y_col`.
-    x_col, y_col : str
-        Column names in df to use as x and y axes.
-    outlier_mask : ndarray (bool)   
-        Boolean mask aligned to df.index indicating which points to label as outliers.
-    mode_name : str, optional
-        For titling; purely cosmetic.
-    label_col : str, optional   
-        Column name in df to use for outlier labels; if None, use df.index.
-    levels : int, default 8
+    df
+        Feature metrics.
+    x_col, y_col
+        Columns to plot.
+    outlier_mask
+        Features to label, aligned to df (e.g. from `get_kde_outliers`).
+    mode_name
+        Title.
+    label_col
+        Column with the labels; None uses the index.
+    levels
         Number of KDE contour levels.
-    cmap : str, default "viridis_r"
-        Colormap for filled KDE contours.
-    bg_point_size : float, default 10.0
-        Size of background scatter points.
-    bg_alpha : float, default 0.1
-        Alpha for background scatter points.
-    outlier_point_size : float, default 30.0
-        Size of outlier scatter points.
-    outlier_alpha : float, default 0.85
-        Alpha for outlier scatter points.
-    x_pad_frac, y_pad_frac : float, default 0.02, 0.05
-        Fractional padding to add to x and y axis limits.
-    min_x_pad, min_y_pad : float, default 0.005, 1.0
-        Minimum padding to add to x and y axis limits.
-    adjust_text_kwargs : dict, optional
-        Additional keyword arguments to pass to adjust_text.
-    ax : Axes, optional
-        Matplotlib Axes to plot on; if None, a new figure and axes are created.
-    dpi : int, default 150
-        Resolution of the figure in dots per inch.
+    cmap
+        Colormap of the contours.
+    bg_point_size, bg_alpha
+        Size and transparency of the other points.
+    outlier_point_size, outlier_alpha
+        Size and transparency of the outliers.
+    x_pad_frac, y_pad_frac
+        Axis padding, as a fraction of the data range.
+    min_x_pad, min_y_pad
+        Minimum axis padding.
+    adjust_text_kwargs
+        Passed to `adjust_text`.
+    ax
+        Axes to draw on; None creates a figure.
+    dpi
+        Figure resolution.
 
     Returns
     -------
     fig, ax
     """
+
 
     x_data = df[x_col].to_numpy()
     y_data = df[y_col].to_numpy()
@@ -617,7 +652,6 @@ def plot_feature_kde(
     labels_artists = []
     for idx, row in df[outlier_mask].iterrows():
 
-    # for idx, row in df.iterrows():
         x = float(row[x_col])
         y = float(row[y_col])
 
@@ -680,42 +714,33 @@ def get_kde_outliers(
     return_mask: bool = False,
 ) -> pd.DataFrame | Tuple[pd.DataFrame, pd.Series]:
     """
-    KDE-based outlier detection, with optional ranking of top_n most extreme points.
-
-    Outlier definition:
-      - Fit 2D KDE on (x_col, y_col) for eligible points
-      - Find points outside outermost contour
-
-    Ranking (when top_n is not None):
-      - Compute distance in optionally scaled (x, y) space.
-      - scale="zscore": standardize by mean & std
-      - scale="robust": standardize by median & IQR
-      - scale="none": use raw (x, y)
+    Find features outside the outermost KDE contour of two metrics.
 
     Parameters
     ----------
-    df : DataFrame
-        Must contain columns `x_col` and `y_col`.
-    x_col, y_col : str
-        Column names in df to use as x and y axes.
-    min_x : float or None, default 0.0
-        Minimum x value for eligibility; points with x <= min_x are ignored.
-        If None, all finite points are eligible.
-    levels : int, default 8
+    df
+        Feature metrics.
+    x_col, y_col
+        Columns to use.
+    min_x
+        Use only features with x above this value; None uses all finite values.
+    levels
         Number of KDE contour levels.
-    cut : float, default 0
-        KDE cut parameter (see seaborn.kdeplot).
-    top_n : int or None, default None
-        If not None, return only the top_n most extreme outliers.
-    scale : {"none", "zscore", "robust"}, default "zscore"
-        Scaling method for distance computation when ranking outliers.
-    return_mask : bool, default False
-        If True, also return a boolean mask aligned to df.index indicating outlier status.
+    cut
+        KDE cut (see `seaborn.kdeplot`).
+    top_n
+        Keep only the top_n outliers, ranked by distance in scaled (x, y).
+    scale
+        Scaling for the ranking: "zscore" (mean, std), "robust" (median, IQR) or "none".
+    return_mask
+        Also return a mask of the outliers, aligned to df.
 
     Returns
     -------
-    outliers_df
-    mask (optional)
+    outliers
+        Outlier rows of df.
+    mask
+        Outlier mask, if return_mask.
     """
 
     x = df[x_col].to_numpy()
@@ -836,18 +861,20 @@ def plot_feature_bar(
     ax: Optional[plt.Axes] = None,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Bar plot of top-N features by a given metric (e.g. weighted_Psum).
+    Bar chart of the top features by a metric.
 
     Parameters
     ----------
-    df : DataFrame
-        Index = feature names, must contain column `metric`.
-    mode_name : str, optional
-        For titling.
-    metric : str, default "weighted_Psum"
-    top_n : int, default 20
-        Number of top features to show.
-    ax : Axes, optional
+    df
+        Feature metrics, indexed by feature name.
+    mode_name
+        Title.
+    metric
+        Column to rank by.
+    top_n
+        Number of features to show.
+    ax
+        Axes to draw on; None creates a figure.
 
     Returns
     -------
@@ -886,19 +913,24 @@ def plot_P_profile(
     lw: float = 0.2,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
-    Plot sorted log2(P) along cluster index, coloring each gene's curve by the argmax of its LFC profile.
+    Sorted log2 P of each feature, colored by the position of its largest gap.
+
     Parameters
     ----------
-    P_sorted : ndarray
-        (M, K) array of sorted P values per gene.
-    LFC_sorted : ndarray    
-        (M, K) array of log fold change values per gene.
-    ax : Axes, optional
-        If given, draw into this Axes.
-    title : str, optional
-        Title for the plot.
-    lw : float, default 0.2
-        Line width for each gene's curve.
+    P_sorted
+        Sorted P values (n_features, K).
+    LFC_sorted
+        Log2 ratios between sorted values (n_features, K-1).
+    ax
+        Axes to draw on; None creates a figure.
+    title
+        Title.
+    lw
+        Line width.
+
+    Returns
+    -------
+    fig, ax
     """
     if ax is None:
         fig, ax = plt.subplots(figsize=(4, 2.5), dpi=150)
@@ -924,7 +956,7 @@ def plot_P_profile(
 
 
 def _get_mode_P(results: ClumpplingResults, mode_name: str) -> np.ndarray:
-    """Helper to fetch a P matrix for a mode from ClumpplingResults."""
+    """P matrix of a mode, aligned if available."""
     if results.P_aligned_by_mode is not None and mode_name in results.P_aligned_by_mode:
         return results.P_aligned_by_mode[mode_name]
     if results.P_unaligned_by_mode is not None and mode_name in results.P_unaligned_by_mode:
@@ -940,7 +972,24 @@ def plot_mode_P_profile(
     lw: float = 0.2,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
-    For a single mode, compute the clustering profile and plot sorted log P.
+    Sorted log2 P of each feature in one mode (see `plot_P_profile`).
+
+    Parameters
+    ----------
+    results
+        Results loaded with P matrices.
+    mode_name
+        Mode name.
+    ax
+        Axes to draw on; None creates a figure.
+    title
+        Title; None uses the mode name.
+    lw
+        Line width.
+
+    Returns
+    -------
+    fig, ax
     """
     P = _get_mode_P(results, mode_name)
     P_sorted = np.sort(P, axis=1)
@@ -971,8 +1020,24 @@ def plot_sepLFC_dist(
     title: str | None = None,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
-    For a single mode, plot distribution of sepLFC by 'how many clusters are
-    separated' (index of sorted cluster before the sepLFC gap).
+    Distribution of sepLFC in one mode, by the position of the largest gap.
+
+    Parameters
+    ----------
+    results
+        Results loaded with P matrices.
+    mode_name
+        Mode name.
+    lfc_threshold
+        sepLFC values above this are highlighted.
+    ax
+        Axes to draw on; None creates a figure.
+    title
+        Title; None uses the mode name.
+
+    Returns
+    -------
+    fig, ax
     """
 
     P = _get_mode_P(results, mode_name)
@@ -1024,18 +1089,24 @@ def make_mode_grid(
     dpi: int = 150,
 ) -> tuple[plt.Figure, dict[str, plt.Axes]]:
     """
-    Create a figure + gridspec layout for a list of modes, returning
-    a dict {mode_name: ax}.
+    Figure with one panel per mode.
 
-        - Rows/cols computed from len(modes) and n_cols.
-        - panel_size gives (width, height) in inches per cell.
+    Parameters
+    ----------
+    modes
+        Mode names.
+    n_cols
+        Number of columns.
+    panel_size
+        (width, height) of each panel, in inches.
+    dpi
+        Figure resolution.
 
-    Example usage:
-
-        fig, ax_by_mode = make_mode_grid(modes, n_cols=4)
-        for mode in modes:
-            plot_mode_P_profile(results, mode, ax=ax_by_mode[mode])
-        fig.tight_layout()
+    Returns
+    -------
+    fig
+    ax_by_mode
+        {mode name: Axes}.
     """
     n_modes = len(modes)
     if n_modes == 0:
@@ -1068,28 +1139,24 @@ def make_mode_grid_by_K(
     dpi: int = 150,
 ) -> tuple[plt.Figure, Dict[str, plt.Axes]]:
     """
-    Create a figure whose axes layout matches `plot_Q_grid`:
-
-        - Rows correspond to distinct K values (sorted).
-        - Within each row, columns correspond to modes with that K,
-          in the order of `modes` (or results.modes if None).
-        - Returns a mapping {mode_name: ax} for the cells actually used.
+    Figure with one panel per mode, one row per K, as in `plot_Q_grid`.
 
     Parameters
     ----------
-    results : ClumpplingResults
-        Must have Q_by_mode populated.
-    modes : sequence of str, optional
-        If provided, only these modes are laid out (in this order).
-        Otherwise use results.modes.
-    panel_size : (width, height) in inches per panel.
-    dpi : int, default 150
+    results
+        Clumppling results.
+    modes
+        Mode names; None uses all.
+    panel_size
+        (width, height) of each panel, in inches.
+    dpi
+        Figure resolution.
 
     Returns
     -------
-    fig : Figure
-    axes_by_mode : dict
-        Mapping mode_name -> Axes in the grid.
+    fig
+    axes_by_mode
+        {mode name: Axes}.
     """
     if modes is None:
         modes = results.modes
@@ -1144,39 +1211,36 @@ def plot_cluster_in_grid(
     **scatter_kwargs,
 ) -> Tuple[plt.Figure, np.ndarray]:
     """
-    Plot membership for a single (mode, cluster) in the full grid layout
-    where rows = modes and columns = clusters (0..K_max-1), using
-    `results.mode_sep_coord_dict` to place that cluster in the correct cell.
-
-    All other cells are left empty / invisible.
+    Membership of one cluster of one mode, in its cell of a grid of modes (rows) by clusters (columns).
 
     Parameters
     ----------
-    results : ClumpplingResults
-    coords : array, shape (n_samples, 2)
-        2D coordinates (UMAP, t-SNE, etc.).
-    mode_name : str
-        Mode name, must be present in results.mode_sep_coord_dict keys.
-    cluster_index : int
-        Cluster index (column in Q) for that mode.
-    cmap : str or Colormap, optional
-        Colormap for membership intensity.
-    xlabel, ylabel : str
-        Axis labels for the occupied cell.
-    base_size : float, default 5.0
-        Base point size.
-    size_scale : float, default 20.0
-        Additional scale times membership value.
-    figsize : tuple, optional
-        Figure size for the full grid.
-    colorbar : bool, default True
-        Whether to draw a colorbar for the occupied cell.
-    **scatter_kwargs :
-        Extra kwargs passed to `ax.scatter` for that cell.
+    results
+        Clumppling results.
+    coords
+        Coordinates (n_cells, 2).
+    mode_name
+        Mode name.
+    cluster_index
+        Cluster index.
+    cmap
+        Colormap.
+    xlabel, ylabel
+        Axis labels.
+    base_size
+        Marker size at zero membership.
+    size_scale
+        Marker size added per unit of membership.
+    figsize
+        Figure size.
+    colorbar
+        Add a colorbar.
+    **scatter_kwargs
+        Passed to `ax.scatter`.
 
     Returns
     -------
-    fig, axes : Figure and 2D axes array for the full grid.
+    fig, axes
     """
     Q = results.Q_by_mode[mode_name]
 
@@ -1254,14 +1318,36 @@ def plot_cluster_panels(
     suptitle_kwargs: Optional[dict] = None,
 ) -> Tuple[plt.Figure, Dict[Tuple[str, int], plt.Axes]]:
     """
-    Plot membership on 2D coords for each (mode, cluster) in a grid:
+    Membership of each cluster on 2D coordinates, one row per mode and one column per cluster.
 
-        rows  = modes (in results.modes order)
-        cols  = cluster index 0..K_max-1
+    Parameters
+    ----------
+    results
+        Clumppling results.
+    coords
+        Coordinates (n_cells, 2).
+    cluster_colors
+        Color per cluster; None uses tab20.
+    val_threshold
+        Plot only cells with membership above this value.
+    s
+        Marker size.
+    alpha
+        Marker transparency.
+    vmin, vmax
+        Range of the color scale.
+    figsize
+        Figure size; None sets it from the grid.
+    dpi
+        Figure resolution.
+    suptitle
+        Figure title.
+    suptitle_kwargs
+        Passed to `fig.suptitle`.
 
-    using results.mode_sep_coord_dict to place each (mode, cluster).
-
-    Each cell contains ONE cluster's membership (white→cluster_color).
+    Returns
+    -------
+    fig, axes
     """
     modes = results.modes
     K_max = results.K_max
@@ -1369,12 +1455,36 @@ def plot_cluster_overlay(
     suptitle_kwargs: Optional[dict] = None,
 ) -> Tuple[plt.Figure, Dict[str, plt.Axes]]:
     """
-    Overlay membership for all clusters within each mode, on a mode-grid:
+    Memberships of all clusters of each mode on 2D coordinates, one panel per mode, one row per K.
 
-        rows = K values (in results.K_range order)
-        cols = modes within each K (using results.mode_coord_dict)
+    Parameters
+    ----------
+    results
+        Clumppling results.
+    coords
+        Coordinates (n_cells, 2).
+    cluster_colors
+        Color per cluster; None uses tab20.
+    val_threshold
+        Plot only cells with membership above this value.
+    s
+        Marker size.
+    alpha
+        Marker transparency.
+    vmin, vmax
+        Range of the color scale.
+    figsize
+        Figure size; None sets it from the grid.
+    dpi
+        Figure resolution.
+    suptitle
+        Figure title.
+    suptitle_kwargs
+        Passed to `fig.suptitle`.
 
-    Each axis shows all clusters for that mode, with different base colors.
+    Returns
+    -------
+    fig, axes
     """
     modes = results.modes
     n_rows = len(results.K_range)
@@ -1490,45 +1600,36 @@ def plot_sepLFC_labels(
     dpi: int = 150,
 ) -> tuple[plt.Figure, Dict[str, plt.Axes]]:
     """
-    For each mode in `modes`, plot:
-
-      - a vertical axis of sepLFC values,
-      - a rug plot of all genes with sepLFC > sepLFC_threshold,
-      - labeled horizontal lines for the top sepLFC genes, colored by weighted_Psum,
-      - all panels share a single horizontal colorbar (weighted_Psum) on top.
+    sepLFC of the selected features in each mode, with the top features labeled and colored by weighted_Psum.
 
     Parameters
     ----------
-    df_selected : DataFrame
-        Wide table with columns like:
-          - weighted_Psum_{mode_name}
-          - sepLFC_{mode_name}
-        and index = gene IDs.
-    modes : sequence of str
-        Mode names used to derive the column suffixes.
-    sepLFC_threshold : float, default 0.0
-        Only genes with sepLFC > threshold are included per mode.
-    cmap : str, default "Reds"
-        Colormap used to encode weighted_Psum.
-    vmin, vmax : float, optional
-        For LogNorm. If vmax is None, it's computed from df_selected across all
-        modes and sepLFC > sepLFC_threshold.
-    y_max : float, default 40.0
-        ymax used for y-axis; also used in label positioning logic.
-    hi_sepLFC_threshold : float, default 32.0
-        If the top sepLFC in a mode exceeds this, up to `n_top_hi` labels per
-        mode are shown; otherwise, up to `n_top_lo`.
-    n_top_hi, n_top_lo : int
-        See above.
-    figsize_scale : float, default 0.95
-        Scale factor for figure width: width = figsize_scale * len(modes).
-    dpi : int, default 150
+    df_selected
+        Output of `select_top_features` (df_selected_all), with columns weighted_Psum_{mode} and sepLFC_{mode}.
+    modes
+        Mode names, one panel each.
+    sepLFC_threshold
+        Show only features with sepLFC above this value.
+    cmap
+        Colormap of weighted_Psum.
+    vmin, vmax
+        Range of the (log) color scale; vmax None uses the data.
+    y_max
+        Upper y limit.
+    hi_sepLFC_threshold
+        If the top sepLFC of a mode is above this, label n_top_hi features; otherwise n_top_lo.
+    n_top_hi, n_top_lo
+        Number of features to label.
+    figsize_scale
+        Figure width per mode, in inches.
+    dpi
+        Figure resolution.
 
     Returns
     -------
-    fig : Figure
-    axes_by_mode : dict
-        Mapping mode_name -> Axes for that panel.
+    fig
+    axes_by_mode
+        {mode name: Axes}.
     """
 
     modes = list(modes)
@@ -1550,7 +1651,7 @@ def plot_sepLFC_labels(
             vmax = 1.0
 
     norm = mcolors.LogNorm(vmin=vmin, vmax=vmax)
-    cmap_wPsum = cm.get_cmap(cmap)
+    cmap_wPsum = plt.get_cmap(cmap)
 
     n_cols = len(modes)
     n_rows = 2
@@ -1698,30 +1799,31 @@ def plot_feature_metrics(
     custom_color_dict=None,
 ):
     """
-    Scatter plot of feature metrics for a given mode, colored by separating class pattern.
+    Joint plot of two feature metrics in one mode, colored by the separated clusters.
 
     Parameters
     ----------
-    df_mode : pd.DataFrame
-        DataFrame containing feature metrics for the mode. Must include 'sepCls', x_col, and y_col.
-    mode_name : str
-        Name of the mode (for title).
-    x_col : str, optional
-        Column name for x-axis metric (default is 'weighted_Psum').
-    y_col : str, optional
-        Column name for y-axis metric (default is 'sepLFC').
-    annot_mask : pd.Series or None, optional
-        Boolean mask for annotating points (default is None).
-    xmax : float or None, optional
-        Maximum x-axis limit (default is None, which auto-scales).
-    ymax : float or None, optional
-        Maximum y-axis limit (default is None, which auto-scales).
-    custom_color_dict : dict or None, optional
-        Custom color dictionary for 'sepType' categories (default is None).
+    df_mode
+        Feature metrics of one mode.
+    mode_name
+        Title.
+    x_col, y_col
+        Columns to plot.
+    sep_col
+        Column with sepCls.
+    annot_mask
+        Features to label.
+    xmax, ymax
+        Axis limits; None sets them from the data.
+    custom_color_dict
+        {separation type ("Cls.1", ..., "Multi.Cls"): color}.
 
     Returns
     -------
-    None
+    g
+        Seaborn JointGrid.
+    ax
+        Joint Axes.
     """
     assert sep_col in df_mode.columns
     assert x_col in df_mode.columns
@@ -1790,8 +1892,40 @@ def plot_feature_across_modes(
     ax: plt.Axes | None = None,
 ):
     """
-    For a focal gene, collect (weighted_Psum, sepLFC, sepCls) across modes
-    and make the scatter-with-labels plot in one shot.
+    weighted_Psum vs. sepLFC of one feature in each mode, labeled by mode.
+
+    Parameters
+    ----------
+    df_pvs_modes
+        {mode name: feature metrics}.
+    modes
+        Mode names.
+    selected_feature
+        Feature name.
+    custom_color_dict
+        {separation type ("Cls.1", ..., "Multi.Cls"): color}.
+    x_col, y_col
+        Columns to plot.
+    sep_col
+        Column with sepCls.
+    xlim, ylim
+        Axis limits, as [max] or [min, max].
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    legend_loc, legend_bbox_to_anchor
+        Legend position.
+    style_label
+        Labels of the low and high side markers.
+    ax
+        Axes to draw on; None creates a figure.
+
+    Returns
+    -------
+    fig, ax
+    df
+        The plotted values, one row per mode.
     """
     res = []
     for mode_name in modes:
@@ -1852,7 +1986,6 @@ def plot_feature_across_modes(
         ax=ax,
     )
 
-    # legend
     ax.legend(
         title="Separated Cls.",
         alignment="center",
@@ -1867,7 +2000,6 @@ def plot_feature_across_modes(
         columnspacing=0.1,
     )
 
-    # x/y limits 
     if xlim is not None:
         if len(xlim) > 1:
             ax.set_xlim(xlim[0], xlim[1])
@@ -1882,7 +2014,6 @@ def plot_feature_across_modes(
     ax.set_ylabel("sepLFC", fontsize=10)
     ax.set_xlabel("weighted_Psum", fontsize=10)
 
-    # labels
     labels = []
     for i in range(len(df)):
         x = df.iloc[i][x_col]
@@ -1917,35 +2048,30 @@ def plot_feature_sepLFC_across_modes(
     ax: Optional[plt.Axes] = None,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Horizontal bar plot of sepLFC for a focal gene across all modes.
+    Bar chart of the sepLFC of one feature in each mode, colored by the separated clusters.
 
     Parameters
     ----------
     res_model
-        ClumpplingResults-like object, with attributes:
-        - modes: list of mode names
-        - mode_K: dict[mode_name -> K]
-        - P_aligned_by_mode: dict[mode_name -> P matrix] (not used, but available)
+        Clumppling results.
     df_pvs_modes
-        Dict mapping mode_name -> DataFrame with columns ['sepLFC', 'sepCls'].
-        Row order must align with `feature_names`.
+        {mode name: feature metrics}, rows in the order of feature_names.
     selected_feature
-        Feature name to plot.
+        Feature name.
     feature_names
-        Sequence of all feature names; selected_feature must be in this list.
+        All feature names.
     colors
-        Sequence of colors indexed by cluster index (0-based).
+        Color per cluster.
     label_rank
-        If True, annotate each bar with the rank of the focal gene by sepLFC.
+        Label each bar with the feature's sepLFC rank in that mode.
     dpi
-        Figure DPI.
+        Figure resolution.
     ax
-        Optional existing Axes to plot into.
+        Axes to draw on; None creates a figure.
 
     Returns
     -------
     fig, ax
-        Matplotlib Figure and Axes.
     """
     # index of focal gene
     try:
@@ -1956,7 +2082,6 @@ def plot_feature_sepLFC_across_modes(
     modes = list(res_model.modes)
     n_modes = len(modes)
 
-    # create fig/ax if needed
     if ax is None:
         fig, ax = plt.subplots(
             1, 1,

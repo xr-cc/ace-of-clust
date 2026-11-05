@@ -14,7 +14,7 @@ plugins:
         python:
           options:
             show_source: false
-            docstring_style: numpy  # change to google if you prefer
+            docstring_style: numpy
             group_by_category: true
             show_category_heading: true
 
@@ -32,11 +32,11 @@ nav:
       - I/O: reference/io.md
       - Analysis: reference/analysis.md
       - Plotting: reference/plotting.md
-      
+
 markdown_extensions:
   - attr_list
 
 theme:
   name: material
   logo: assets/logo.png
-  favicon: assets/logo.png   # or a .ico/.png favicon
+  favicon: assets/logo.png

@@ -390,7 +390,7 @@ def save_toy_QP_outputs(
         else:
             np.savetxt(path, arr, fmt=fmt_float)
 
-    # Save shared objects (use simple conventional names if you didn’t pass names)
+    # Save shared objects
     if Q_true is not None:
         _save_array(out_dir / "Q_true.Q", Q_true)
     if P_true is not None:

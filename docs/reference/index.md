@@ -1,9 +1,8 @@
 # Reference
 
-This section documents the public API of **ace-of-clust**.
+The public API of `ace_of_clust`.
 
-- **Clumppling**: wrappers of core alignment workflows.
-- **I/O**: loading/saving inputs, outputs, and intermediate results.
-- **Analysis**: metrics, post-processing, and evaluation utilities.
-- **Plotting**: visualization helpers for aligned results and diagnostics.
-
+- **Clumppling**: wrappers for *Clumppling* and *compModels*.
+- **I/O**: loading results and input files.
+- **Analysis**: feature metrics, mode mappings, membership comparison, gene set enrichment and genomic annotation.
+- **Plotting**: visualizations of clustering results, model comparisons and gene set enrichment.

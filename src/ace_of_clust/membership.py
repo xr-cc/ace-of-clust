@@ -1,10 +1,4 @@
-"""
-membership.py
-
-Functions for membership differences, annotation group summaries, and
-FST-based population-structure statistics.
-
-"""
+"""Membership differences between modes, summaries by annotation group, and FSTruct statistics."""
 
 from __future__ import annotations
 
@@ -20,20 +14,7 @@ from .analysis import map_alt_to_ref
 def compute_membership_diff(
     diff_Q: np.ndarray,
 ) -> float:
-    """
-    Compute overall membership difference as average absolute difference
-    per cell, aggregated over all clusters.
-
-    Parameters
-    ----------
-    diff_Q : array-like, shape (n_cells, K)
-        Per-cell, per-cluster absolute differences.
-
-    Returns
-    -------
-    overall_diff : float
-        Average absolute difference per cell.
-    """
+    """Overall membership difference: diff_Q summed over clusters, averaged over cells."""
     n_cells = diff_Q.shape[0]
     overall_diff = float(diff_Q.sum() / n_cells)
     return overall_diff
@@ -44,22 +25,19 @@ def compute_per_cell_diff(
     aggregation: str = "sum",
 ) -> np.ndarray:
     """
-    Compute per-cell membership difference by aggregating over clusters.
+    Membership difference per cell.
 
     Parameters
     ----------
-    diff_Q : array-like, shape (n_cells, K)
-        Per-cell, per-cluster absolute differences.
-    aggregation : str, default "max"
-        Aggregation method over clusters:
-          - "sum"  : recommended, normalized by 2 (maximum possible diff per cell)
-          - "max"
-          - "mean"
+    diff_Q
+        Absolute membership differences (n_cells, K).
+    aggregation
+        How to combine clusters: "sum" (halved, so in [0, 1]), "max" or "mean".
 
     Returns
     -------
-    per_cell_diff : array, shape (n_cells,)
-        Aggregated per-cell difference scores.
+    np.ndarray
+        Difference per cell (n_cells,).
     """
     if diff_Q.ndim != 2:
         raise ValueError("diff_Q must be 2D (n_cells, K).")
@@ -82,54 +60,27 @@ def get_diff_matrices(
     strict_pair_mapping: bool = True,
 ):
     """
-    Compute per-cell membership difference matrices for all modes vs a reference mode.
+    Compute membership differences of every mode from a reference mode.
 
-    For each model and each mode, this function:
-      - Aligns that mode's Q matrix to the reference Q (ref_mode) using map_alt_to_ref
-        and the provided pair_mappings.
-      - Returns the aligned difference matrix diff_Q (same as used in plotting),
-        without any plotting.
-
-    Logic mirrors plot_compmodels_diff_grid:
-      - When ref_K <= K_cur:
-          uses pair_mappings[f"{ref_mode}-{full_name}"]
-          and calls map_alt_to_ref(ref_Q, Q, pair_mapping).
-      - When ref_K > K_cur:
-          uses pair_mappings[f"{full_name}-{ref_mode}"]
-          and calls map_alt_to_ref(Q, ref_Q, pair_mapping).
+    The mode with the smaller K is mapped onto the other with `map_alt_to_ref`.
 
     Parameters
     ----------
     comp_res
-        Object holding compModels results, expected to have:
-          - comp_res.modes_by_model : Dict[str, List[str]]
-          - comp_res.get_Q(name)    : -> np.ndarray of shape (n_cells, K)
-    pair_mappings : dict
-        Mapping of keys like "refMode-altMode" to a list of (i_ref, i_alt) index pairs.
-    ref_mode : str
-        Full mode name used as the reference (e.g. "rna.seurat_louvain_K15M1").
-    models : sequence of str, optional
-        Subset of models to process. If None, all models in comp_res.modes_by_model
-        are processed.
-    strict_pair_mapping : bool, default True
-        If True, missing pair mappings raise KeyError.
-        If False, missing mappings yield a zero diff_Q of shape (n_cells, min(ref_K, K_cur)).
+        compModels results.
+    pair_mappings
+        Output of `get_mode_pair_mappings`.
+    ref_mode
+        Full mode name of the reference mode.
+    models
+        Models to include; None uses all.
+    strict_pair_mapping
+        Raise an error if a pair mapping is missing; otherwise use zero differences.
 
     Returns
     -------
-    diff_by_model_mode : Dict[str, Dict[str, np.ndarray]]
-        Nested dict:
-          `diff_by_model_mode[model_name][short_mode] = diff_Q`
-
-        - `diff_Q` has shape (n_cells, K_eff), where K_eff is typically the smaller
-          K between ref and current (as produced by map_alt_to_ref).
-        - For the reference mode itself, diff_Q is a zero matrix with the same shape
-          as ref_Q.
-
-    Notes
-    -----
-    - This function *does not* call compute_membership_diff; it returns
-      the full diff_Q matrices so you can aggregate however you like.
+    dict
+        {model: {mode name: diff_Q (n_cells, min(ref_K, K))}}; zeros for the reference mode.
     """
 
     # ---- get model -> modes mapping ----
@@ -146,11 +97,11 @@ def get_diff_matrices(
     n_cells, ref_K = int(ref_Q.shape[0]), int(ref_Q.shape[1])
 
     def _to_full_mode(model: str, mode_entry: str) -> str:
-        """Ensure mode name has model prefix."""
+        """Add the model prefix to a mode name."""
         return mode_entry if str(mode_entry).startswith(model + "_") else f"{model}_{mode_entry}"
 
     def _short_mode(model: str, full_name: str) -> str:
-        """Strip model_ prefix for compact key."""
+        """Remove the model prefix from a full mode name."""
         prefix = model + "_"
         return full_name[len(prefix):] if full_name.startswith(prefix) else full_name
 
@@ -170,7 +121,6 @@ def get_diff_matrices(
                 diff_by_model_mode[model_name][short_mode] = diff_Q
                 continue
 
-            # Get current Q and its K
             Q = comp_res.get_Q(full_name)
             K_cur = int(Q.shape[1])
 
@@ -206,25 +156,25 @@ def get_diff_matrices(
 
 def get_pairwise_diff(mode_list_1, mode_list_2, pair_mappings, comp_results):
     """
-    For each pair of modes (m1 in mode_list_1, m2 in mode_list_2),
-    compute the diff_Q matrix between their Q matrices after
-    mapping the smaller-K mode into the larger-K mode's space.
+    Compute diff_Q for every pair of modes from two lists.
+
+    The mode with the smaller K is mapped onto the other.
 
     Parameters
     ----------
-    mode_list_1 : list of str
-        First list of mode names.
-    mode_list_2 : list of str
-        Second list of mode names.
-    pair_mappings : dict
-        As returned by get_mode_pair_mappings.
-    comp_results : ClumpplingResults
-        Must have Q_by_mode populated.
+    mode_list_1
+        First mode names.
+    mode_list_2
+        Second mode names.
+    pair_mappings
+        Output of `get_mode_pair_mappings`.
+    comp_results
+        Results with Q_by_mode.
 
     Returns
     -------
-    diff_Q_dict : dict
-        {(m1, m2): diff_Q array}
+    dict
+        {(mode 1, mode 2): diff_Q}.
     """
     diff_Q_dict: Dict[Tuple[str, str], np.ndarray] = {}
 
@@ -265,19 +215,7 @@ def get_pairwise_diff(mode_list_1, mode_list_2, pair_mappings, comp_results):
 def get_pairwise_membership_diff(
     diff_Q_dict: Mapping[Tuple[str, str], np.ndarray],
 ) -> Dict[Tuple[str, str], float]:
-    """
-    From a dict of diff_Q matrices, compute overall membership differences.
-
-    Parameters
-    ----------
-    diff_Q_dict : dict
-        {(m1, m2): diff_Q array}
-
-    Returns
-    -------
-    overall_diff_dict : dict
-        {(m1, m2): overall_diff}
-    """
+    """Overall membership difference of each diff_Q, as {(mode 1, mode 2): difference}."""
     overall_diff_dict: Dict[Tuple[str, str], float] = {}
 
     for mode_pair, diff_Q in diff_Q_dict.items():
@@ -294,20 +232,7 @@ def get_pairwise_membership_diff(
 def get_group_indices(
     annotation_labels: Sequence[Any],
 ) -> Dict[str, np.ndarray]:
-    """
-    Build mapping: annotation_group -> np.ndarray of integer indices.
-
-    Parameters
-    ----------
-    annotation_labels
-        Per-cell labels (e.g., cell types, domains, batches).
-        Length must equal n_cells.
-
-    Returns
-    -------
-    dict
-        {group_label: indices}
-    """
+    """Cell indices of each annotation group, as {group: indices}."""
     s = pd.Series(annotation_labels, dtype="object")
     idx_dict = s.groupby(s).indices  # label -> Int64Index
     return {str(k): np.asarray(v, dtype=int) for k, v in idx_dict.items()}
@@ -316,18 +241,7 @@ def get_group_indices(
 def compute_group_sizes(
     annotation_labels: Sequence[Any],
 ) -> pd.Series:
-    """
-    Compute group sizes as a sorted Series.
-    Parameters
-    ----------
-    annotation_labels
-        Per-cell labels (e.g., cell types, domains, batches).
-        Length must equal n_cells.
-    Returns
-    -------
-    pd.Series
-        index = group_label, value = size
-    """
+    """Number of cells per annotation group, as a sorted Series."""
     group_indices = get_group_indices(annotation_labels)
     sizes = {g: len(idxs) for g, idxs in group_indices.items()}
     return pd.Series(sizes).sort_index()
@@ -337,22 +251,7 @@ def compute_group_diff(
     per_cell_diff: np.ndarray,
     group_indices: Mapping[str, np.ndarray],
 ) -> Dict[str, float]:
-    """
-    Compute average membership_difference of cells in the annotation groups.
-
-    Parameters
-    ----------
-    per_cell_diff
-        1D array of length n_cells.
-        Represents an aggregated per-cell difference score.
-    group_indices
-        dict: group -> indices
-
-    Returns
-    -------
-    dict
-        group -> fraction_diff
-    """
+    """Mean per-cell difference in each annotation group, as {group: difference}."""
     out: Dict[str, float] = {}
     for group, idx in group_indices.items():
         if len(idx) == 0:
@@ -365,36 +264,36 @@ def compute_group_diff(
 def compute_mode_diffs(
     mode_Q: np.ndarray,
     ref_Q: np.ndarray,
-    mode_name: Sequence[str],
+    mode_name: str,
     ref_mode: str,
     pair_mappings: Mapping[str, Sequence[Tuple[int, int]]],
     annotation_labels: Optional[Sequence[Any]] = None,
     aggregation: str = "sum",
 ) -> Tuple[float, np.ndarray, Optional[Dict[str, float]]]:
     """
-    Compute overall, per-cell, and annotation-group membership differences
+    Compute the membership difference of one mode from a reference mode.
 
     Parameters
     ----------
-    mode_Q : np.ndarray
-        Membership matrix for the current mode (n_cells, alt_K).
-    ref_Q : np.ndarray
-        Reference membership matrix (n_cells, ref_K).
-    mode_name : Sequence[str]
-        Name of the current mode.
-    ref_mode : str
+    mode_Q
+        Q matrix of the mode (n_cells, K).
+    ref_Q
+        Q matrix of the reference mode (n_cells, ref_K).
+    mode_name
+        Name of the mode.
+    ref_mode
         Name of the reference mode.
-    pair_mappings : Mapping[str, Sequence[Tuple[int, int]]]
-        Mapping pairs for cluster correspondences between modes.
-    annotation_labels : Optional[Sequence[Any]], optional
-        Per-cell annotation labels for grouping, by default None
-    aggregation : str, optional
-        Aggregation method for per-cell differences, by default "sum"
+    pair_mappings
+        Output of `get_mode_pair_mappings`.
+    annotation_labels
+        Annotation label per cell; None skips the group differences.
+    aggregation
+        How to combine clusters per cell (see `compute_per_cell_diff`).
 
     Returns
     -------
-    Tuple[float, np.ndarray, Optional[Dict[str, float]]]
-        Overall difference, per-cell differences, and optional group differences.
+    tuple
+        Overall difference, difference per cell, and difference per annotation group (or None).
     """
     n_cells = int(ref_Q.shape[0])
     ref_K = int(ref_Q.shape[1])
@@ -430,32 +329,34 @@ def compute_mode_diffs(
     return overall_diff, per_cell_diff, group_diff
 
 def compute_all_mode_diffs(
-    comp_results: ClumpplingResults,
+    comp_results: CompModelsResults,
     ref_mode: str,
     pair_mappings: Mapping[str, Sequence[Tuple[int, int]]],
     annotation_labels: Optional[Sequence[Any]] = None,
     aggregation: str = "sum"
 ) -> Tuple[Dict[str, float], Dict[str, Dict[str, float]]]:
     """
-    Compute overall and annotation-group membership differences for all modes against a reference mode.
+    Compute the membership difference of every mode from a reference mode.
 
     Parameters
     ----------
-    comp_results : ClumpplingResults
-        Results object containing membership matrices and mode information.
-    ref_mode : str
-        Name of the reference mode.
-    pair_mappings : Mapping[str, Sequence[Tuple[int, int]]]
-        Mapping pairs for cluster correspondences between modes.
-    annotation_labels : Optional[Sequence[Any]], optional
-        Per-cell annotation labels for grouping, by default None
-    aggregation : str, optional
-        Aggregation method for per-cell differences, by default "sum"
+    comp_results
+        compModels results.
+    ref_mode
+        Full mode name of the reference mode.
+    pair_mappings
+        Output of `get_mode_pair_mappings`.
+    annotation_labels
+        Annotation label per cell; None skips the group differences.
+    aggregation
+        How to combine clusters per cell (see `compute_per_cell_diff`).
 
     Returns
     -------
-    Tuple[Dict[str, float], Dict[str, Dict[str, float]]]
-        Overall differences and annotation-group differences for all modes.
+    modes_total_diff
+        {full mode name: overall difference}.
+    modes_group_diff
+        {full mode name: {group: difference}}.
     """
     if ref_mode not in comp_results.Q_by_mode:
         raise KeyError(f"Reference mode {ref_mode!r} not found in comp_results.Q_by_mode.")
@@ -513,22 +414,20 @@ def build_diff_df(
     sort_index: bool = True,
 ) -> pd.DataFrame:
     """
-    Build a DataFrame of annotation-group membership differences per mode.
+    Table of differences per mode (rows) and annotation group (columns).
 
     Parameters
     ----------
-    mode_group_diff : dict
-        {mode_name: {group_label: fraction_diff}}
-    fill_value : float, default 0.0
-        Value to fill for missing group-mode combinations.
-    sort_index : bool, default True
-        If True, sort the DataFrame index.
+    mode_group_diff
+        {mode name: {group: difference}}.
+    fill_value
+        Value for missing entries.
+    sort_index
+        Sort the rows by mode name.
+
     Returns
     -------
     pd.DataFrame
-        Index: group labels
-        Columns: mode names
-        Values: fraction_diff
     """
 
     df = pd.DataFrame(mode_group_diff).fillna(fill_value).T
@@ -548,37 +447,31 @@ def compute_avg_memberships(
     verbose: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
-    For each model, compute average cluster membership per annotation group.
-
-    This generalizes to any number of models.
-
-    Expected res_models structure (as in your code):
-        res_models[model].Q_by_mode[mode] -> array-like of shape (n_cells, K)
+    Mean cluster membership per annotation group, for one mode of each model.
 
     Parameters
     ----------
     models
-        List/sequence of model names to process.
+        Model names.
     res_models
-        Dict-like mapping model -> result object containing Q_by_mode.
+        {model: results with Q_by_mode}.
     selected_modes
-        Dict-like mapping model -> mode to use.
+        {model: mode name}.
     annotation_labels
-        Length n_cells labels for grouping.
+        Annotation label per cell.
     annot_col
-        Name of the annotation column in output.
+        Name of the annotation column in the output.
     cluster_prefix
-        Prefix for cluster columns in output.
+        Prefix of the cluster columns in the output.
     sort_groups
-        Passed to groupby(sort=...). Default False preserves observed order.
+        Sort the groups; otherwise keep their order of appearance.
     verbose
-        If True, print model/mode and shapes.
+        Print the mode and shape of each model.
 
     Returns
     -------
-    avg_cls_memberships
-        Dict of model -> DataFrame with columns:
-            [annot_col, f"{cluster_prefix}0", ..., f"{cluster_prefix}{K-1}"]
+    dict
+        {model: DataFrame with annot_col and one column per cluster ({cluster_prefix}0, {cluster_prefix}1, ...)}.
     """
     orig_order_uniq_labels = np.unique(annotation_labels).tolist()
     annotation_labels = pd.Series(annotation_labels, name=annot_col)
@@ -637,24 +530,21 @@ def compute_avg_memberships(
 
 def compute_fstruct(Q: np.ndarray, *, check_row_sums: bool = True, atol: float = 1e-8) -> Dict[str, float]:
     """
-    Compute FST/FST_MAX.
+    Compute FSTruct (Fst / FstMax) of a Q matrix.
 
     Parameters
     ----------
     Q
-        2D array of shape (I, K), each row is an individual and
-        each row is assumed to sum to 1 (cluster probabilities).
+        Q matrix (n_cells, K) with rows summing to 1.
     check_row_sums
-        If True, verify that each row sums to 1 within `atol`.
+        Check that rows sum to 1.
     atol
-        Absolute tolerance for the row-sum check.
+        Tolerance of the row-sum check.
 
     Returns
     -------
-    dict with keys:
-        - "Fst"
-        - "FstMax"
-        - "ratio" = Fst / FstMax (0 if FstMax == 0)
+    dict
+        Fst, FstMax and ratio (Fst / FstMax, or 0 if FstMax is 0).
     """
     Q = np.asarray(Q, dtype=float)
     I, K = Q.shape  # I: number of individuals, K: number of clusters
@@ -735,26 +625,25 @@ def compute_fstruct_by_group(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Compute FST/FST_MAX per annotation group.
+    Compute FSTruct per annotation group.
 
     Parameters
     ----------
     Q
-        2D array of shape (n_cells, K), each row is a cell and
-        each row is assumed to sum to 1 (cluster probabilities).
+        Q matrix (n_cells, K).
     annotation_labels
-        Length n_cells labels for grouping.
+        Annotation label per cell.
     annot_col
-        Name of the annotation column in output.
+        Name of the annotation column in the output.
     sort_groups
-        Passed to groupby(sort=...). Default False preserves observed order.
+        Sort the groups; otherwise keep their order of appearance.
     verbose
-        If True, print shapes.
+        Print shapes.
 
     Returns
     -------
     pd.DataFrame
-        Columns: [annot_col, "Fst", "FstMax", "ratio"]
+        Columns annot_col, Fst, FstMax and ratio.
     """
     orig_order_uniq_labels = np.unique(annotation_labels).tolist()
     annotation_labels = pd.Series(annotation_labels, name=annot_col)
@@ -796,32 +685,27 @@ def compute_fstruct_by_model_group(
     verbose: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
-    For each model, compute FST/FST_MAX per annotation group.
+    Compute FSTruct per annotation group for several modes.
 
-    This generalizes to any number of models.
-
-    Expected res_models structure (as in your code):
-        res_models[model].Q_by_mode[mode] -> array-like of shape (n_cells, K)
     Parameters
     ----------
     comp_res
-        Object containing results for multiple models.
-    selected_modes
-        Mapping from model name to selected mode name.
+        compModels results.
     annotation_labels
-        Length n_cells labels for grouping.
+        Annotation label per cell.
+    selected_modes
+        Full mode names; None uses all.
     annot_col
-        Name of the annotation column in output.
+        Name of the annotation column in the output.
     sort_groups
-        Passed to groupby(sort=...). Default False preserves observed order.
+        Sort the groups; otherwise keep their order of appearance.
     verbose
-        If True, print shapes.
+        Print shapes.
 
     Returns
     -------
-    Dict[str, pd.DataFrame]
-        Keys are model names, values are DataFrames with columns:
-        [annot_col, "Fst", "FstMax", "ratio"]
+    dict
+        {full mode name: output of `compute_fstruct_by_group`}.
     """
     orig_order_uniq_labels = np.unique(annotation_labels).tolist()
     annotation_labels = pd.Series(annotation_labels, name=annot_col)
@@ -868,38 +752,29 @@ def bootstrap_fstruct_by_group(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Bootstrap FST/FST_MAX per annotation group by resampling within each group.
-
-    For each group g:
-      - Resample rows of Q belonging to g with replacement (same group size).
-      - Compute FSTruct on the bootstrap sample.
-      - Repeat n_boot times.
+    Bootstrap FSTruct per annotation group, resampling cells within each group.
 
     Parameters
     ----------
     Q
-        2D array of shape (n_cells, K), each row is a cell and
-        each row is assumed to sum to 1 (cluster probabilities).
+        Q matrix (n_cells, K).
     annotation_labels
-        Length n_cells labels for grouping.
+        Annotation label per cell.
     n_boot
-        Number of bootstrap replicates per group.
+        Number of bootstrap samples per group.
     annot_col
-        Name of the annotation column in output.
+        Name of the annotation column in the output.
     sort_groups
-        If True, groups are processed in sorted order.
-        If False, preserve first-occurrence order.
+        Sort the groups; otherwise keep their order of appearance.
     random_state
-        Optional seed for reproducibility.
+        Random seed.
     verbose
-        If True, print basic diagnostics.
+        Print progress.
 
     Returns
     -------
     pd.DataFrame
-        Columns: [annot_col, "boot", "Fst", "FstMax", "ratio"]
-
-        One row per (group, bootstrap replicate).
+        Columns annot_col, boot, Fst, FstMax and ratio; one row per group and bootstrap sample.
     """
     # --- labels as Series ---
     annotation_labels = pd.Series(annotation_labels, name=annot_col)
@@ -939,7 +814,6 @@ def bootstrap_fstruct_by_group(
             boot_idx = rng.choice(idx, size=n_g, replace=True)
             Q_boot = Q[boot_idx, :]
 
-            # assume compute_fstruct returns (Fst, FstMax, ratio)
             res = compute_fstruct(Q_boot)
             Fst, FstMax, ratio  = res["Fst"], res["FstMax"], res["ratio"]
 
@@ -960,32 +834,29 @@ def bootstrap_fstruct_by_model_group(
     verbose: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
-    For each model, compute boostrapped FST/FST_MAX per annotation group.
+    Bootstrap FSTruct per annotation group for several modes.
 
-    This generalizes to any number of models.
-
-    Expected res_models structure (as in your code):
-        res_models[model].Q_by_mode[mode] -> array-like of shape (n_cells, K)
     Parameters
     ----------
     comp_res
-        Object containing results for multiple models.
-    selected_modes
-        Mapping from model name to selected mode name.
+        compModels results.
     annotation_labels
-        Length n_cells labels for grouping.
+        Annotation label per cell.
+    n_boot
+        Number of bootstrap samples per group.
+    selected_modes
+        Full mode names; None uses all.
     annot_col
-        Name of the annotation column in output.
+        Name of the annotation column in the output.
     sort_groups
-        Passed to groupby(sort=...). Default False preserves observed order.
+        Sort the groups; otherwise keep their order of appearance.
     verbose
-        If True, print shapes.
+        Print shapes.
 
     Returns
     -------
-    Dict[str, pd.DataFrame]
-        Keys are model names, values are DataFrames with columns:
-        [annot_col, "Fst", "FstMax", "ratio"]
+    dict
+        {full mode name: output of `bootstrap_fstruct_by_group`}.
     """
     orig_order_uniq_labels = np.unique(annotation_labels).tolist()
     annotation_labels = pd.Series(annotation_labels, name=annot_col)
@@ -1034,24 +905,22 @@ def get_mode_sizes(
     sort_index: bool = True,
 ) -> pd.Series:
     """
-    Build a Series of mode sizes indexed by FULL mode names.
+    Mode sizes (number of runs) indexed by full mode name.
 
     Parameters
     ----------
     comp_res
-        Your comp result object.
+        compModels results.
     size_col
-        Column containing mode sizes in each model's stats DataFrame.
+        Column of the mode_stats tables with the sizes.
     fill_missing
-        Value used if a mode size is missing from stats.
+        Value for modes without a size.
     sort_index
-        If True, sort the Series by full mode name.
+        Sort by full mode name.
 
     Returns
     -------
     pd.Series
-        Index: full mode names (e.g., "{model}_{short_mode}")
-        Values: mode sizes
     """
     modes_by_model = comp_res.modes_by_model
     stats_by_model = comp_res.mode_stats_by_model

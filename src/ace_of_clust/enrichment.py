@@ -1,9 +1,4 @@
-"""
-enrichment.py
-
-Gene set enrichment statistical tests.
-
-"""
+"""Gene set enrichment tests on P matrices."""
 
 from __future__ import annotations
 
@@ -17,25 +12,21 @@ from .analysis import compute_profile_unnorm, get_sepLFC
 
 def resolve_gene_set(symbols_or_indices: list, used_genes: list) -> Tuple[List[str], np.ndarray]:
     """
-    Resolve a gene set to the subset present in a reference gene list.
-
-    Accepts either gene symbols (strings) or integer indices into
-    ``used_genes``, and returns the matched symbols together with their
-    positions in ``used_genes``.
+    Keep the genes of a gene set that are in a reference gene list.
 
     Parameters
     ----------
-    symbols_or_indices : list of str or list of int
-        Gene symbols to look up, or integer indices into ``used_genes``.
-    used_genes : list of str
-        Reference gene list (e.g. row names of the P matrix).
+    symbols_or_indices
+        Gene names, or indices into used_genes.
+    used_genes
+        Reference gene names (the P rows).
 
     Returns
     -------
-    gene_set : list of str
-        Gene symbols that are present in ``used_genes``.
-    gene_set_indices : np.ndarray of int
-        Positions of ``gene_set`` in ``used_genes``.
+    gene_set
+        Gene names found in used_genes.
+    gene_set_indices
+        Their indices in used_genes.
     """
     used_genes = list(used_genes)
     if len(symbols_or_indices) > 0 and isinstance(symbols_or_indices[0], (int, np.integer)):
@@ -49,36 +40,24 @@ def resolve_gene_set(symbols_or_indices: list, used_genes: list) -> Tuple[List[s
 
 def compute_pairwise_lfc(x: np.ndarray) -> np.ndarray:
     """
-    Compute all-pairs log2 fold-change matrix from a cluster loading vector.
+    Compute log2 fold changes between all pairs of clusters.
 
     Parameters
     ----------
-    x : np.ndarray, shape (K,)
-        Per-cluster values (e.g. mean gene-set loading per cluster).
+    x
+        Value per cluster (K,), e.g. gene set mean P.
 
     Returns
     -------
-    lfc : np.ndarray, shape (K, K)
-        Antisymmetric matrix where ``lfc[j, k] = log2(x[j]) - log2(x[k])``.
+    np.ndarray
+        lfc[j, k] = log2(x[j]) - log2(x[k]), shape (K, K).
     """
     x = np.asarray(x, dtype=float)
     return np.subtract.outer(np.log2(x + 1e-12), np.log2(x + 1e-12))   # (K, K)
 
 
 def _fdr_bh(pvals: np.ndarray) -> np.ndarray:
-    """
-    Apply Benjamini-Hochberg FDR correction.
-
-    Parameters
-    ----------
-    pvals : np.ndarray
-        Flat array of raw p-values.
-
-    Returns
-    -------
-    qvals : np.ndarray
-        BH-adjusted q-values, same shape as ``pvals``, clipped to [0, 1].
-    """
+    """Benjamini-Hochberg adjusted p-values, clipped to [0, 1]."""
     pvals = np.asarray(pvals, dtype=float)
     n = pvals.size
     order = np.argsort(pvals)
@@ -91,37 +70,29 @@ def _fdr_bh(pvals: np.ndarray) -> np.ndarray:
 
 
 def test_pairwise_lfc(obs: np.ndarray, nulls: np.ndarray, alternative="two-sided",
-                                center="mean", compute_maxT=True, atol=1e-8):
+                                center="mean", compute_maxT=True):
     """
-    Entrywise permutation test for an observed K×K pairwise LFC matrix.
+    Test each pairwise LFC against its null distribution.
 
-    For each upper-triangle pair (i, j), the observed LFC is compared to
-    its permutation null distribution to produce a z-score and empirical
-    p-value.  P-values are corrected with Benjamini-Hochberg FDR.
-    Optionally, familywise error rate control via the maxT method is applied.
+    Each upper-triangle pair gets a z-score and an empirical p-value, adjusted with Benjamini-Hochberg and, optionally, maxT.
 
     Parameters
     ----------
-    obs : np.ndarray, shape (K, K)
-        Observed antisymmetric LFC matrix.
-    nulls : np.ndarray, shape (B, K, K)
-        Null LFC matrices from ``B`` permutations.
-    alternative : {"two-sided", "greater", "less"}
-        Direction of the test. Default ``"two-sided"``.
-    center : {"mean", "median"}
-        How to centre the null distribution. Default ``"mean"``.
-    compute_maxT : bool
-        If True, also compute familywise maxT-adjusted p-values.
-        Default True.
-    atol : float
-        Unused tolerance parameter (reserved). Default 1e-8.
+    obs
+        Observed LFC matrix (K, K).
+    nulls
+        Null LFC matrices (B, K, K).
+    alternative
+        "two-sided", "greater" or "less".
+    center
+        Center of the null: "mean" or "median".
+    compute_maxT
+        Also compute maxT-adjusted p-values.
 
     Returns
     -------
-    result : dict
-        Keys: ``p_mat``, ``q_mat``, ``z_mat``, ``effect_mat``,
-        ``tested_pairs``, ``p_vec``, ``q_vec``, ``z_vec``, ``effect_vec``.
-        If ``compute_maxT`` is True, also ``p_maxT_mat``, ``p_maxT_vec``.
+    dict
+        p_mat, q_mat, z_mat, effect_mat, tested_pairs, p_vec, q_vec, z_vec and effect_vec; with compute_maxT, also p_maxT_mat and p_maxT_vec.
     """
     obs   = np.asarray(obs,   dtype=float)
     nulls = np.asarray(nulls, dtype=float)
@@ -173,27 +144,23 @@ def test_pairwise_lfc(obs: np.ndarray, nulls: np.ndarray, alternative="two-sided
 
 def sample_null_P(P: np.ndarray, gs_idx: np.ndarray, n_perm: int, rng_seed: int = 1) -> np.ndarray:
     """
-    Sample a permutation null distribution of mean gene-set loadings.
-
-    For each permutation, a random gene set of the same size as ``gs_idx``
-    is drawn without replacement from all genes, and the mean loading vector
-    across clusters is recorded.
+    Sample random gene sets of the same size and record their mean P.
 
     Parameters
     ----------
-    P : np.ndarray, shape (G, K)
-        Full gene-by-cluster loading matrix.
-    gs_idx : np.ndarray of int
-        Indices of the gene set within ``P``.
-    n_perm : int
-        Number of permutations.
-    rng_seed : int, optional
-        Random seed for reproducibility. Default 1.
+    P
+        P matrix (n_genes, K).
+    gs_idx
+        Gene set indices in P.
+    n_perm
+        Number of random gene sets.
+    rng_seed
+        Random seed.
 
     Returns
     -------
-    null_mean_P : np.ndarray, shape (n_perm, K)
-        Mean loading vector for each random gene set.
+    np.ndarray
+        Mean P of each random gene set (n_perm, K).
     """
     rng = np.random.default_rng(rng_seed)
     null_mean_P = np.zeros((n_perm, P.shape[1]), dtype=np.float32)
@@ -205,26 +172,21 @@ def sample_null_P(P: np.ndarray, gs_idx: np.ndarray, n_perm: int, rng_seed: int 
 
 def test_P_enrichment(P: np.ndarray, gs_idx: np.ndarray, null_mean_P: np.ndarray):
     """
-    Test whether a gene set has elevated mean loading in each cluster.
-
-    Compares the observed gene-set mean loading per cluster to the
-    permutation null produced by ``sample_null_P``.
+    Test whether the gene set mean P is higher than the null in each cluster.
 
     Parameters
     ----------
-    P : np.ndarray, shape (G, K)
-        Full gene-by-cluster loading matrix.
-    gs_idx : np.ndarray of int
-        Indices of the gene set within ``P``.
-    null_mean_P : np.ndarray, shape (n_perm, K)
-        Null mean loading vectors from ``sample_null_P``.
+    P
+        P matrix (n_genes, K).
+    gs_idx
+        Gene set indices in P.
+    null_mean_P
+        Output of `sample_null_P`.
 
     Returns
     -------
-    result : dict with keys
-        ``gs_mean_P`` : np.ndarray, shape (K,) — observed gene-set mean loading.
-        ``z``         : np.ndarray, shape (K,) — z-score vs. null.
-        ``p_emp``     : np.ndarray, shape (K,) — one-sided empirical p-value.
+    dict
+        gs_mean_P (gene set mean P), z (z-score) and p_emp (one-sided empirical p-value), each of shape (K,).
     """
     gs_mean_P = P[gs_idx].mean(axis=0)                    # (K,)
     null_mu  = null_mean_P.mean(axis=0)
@@ -236,30 +198,21 @@ def test_P_enrichment(P: np.ndarray, gs_idx: np.ndarray, null_mean_P: np.ndarray
 
 def test_LFC_enrichment(P: np.ndarray, gs_idx: np.ndarray, null_mean_P: np.ndarray):
     """
-    Test all pairwise log2 fold-changes of gene-set mean loadings.
-
-    Computes the observed all-pairs LFC matrix from the gene-set mean
-    loading vector and tests each upper-triangle entry against its
-    permutation null via ``test_pairwise_lfc``.
+    Test the pairwise LFCs of the gene set mean P against the null.
 
     Parameters
     ----------
-    P : np.ndarray, shape (G, K)
-        Full gene-by-cluster loading matrix.
-    gs_idx : np.ndarray of int
-        Indices of the gene set within ``P``.
-    null_mean_P : np.ndarray, shape (n_perm, K)
-        Null mean loading vectors from ``sample_null_P``.
+    P
+        P matrix (n_genes, K).
+    gs_idx
+        Gene set indices in P.
+    null_mean_P
+        Output of `sample_null_P`.
 
     Returns
     -------
-    result : dict with keys
-        ``obs_lfc``  : np.ndarray, shape (K, K) — observed pairwise LFC matrix.
-        ``null_lfc`` : np.ndarray, shape (n_perm, K, K) — null LFC matrices.
-        ``test``     : dict — output of ``test_pairwise_lfc``.
-        ``df``       : pd.DataFrame — per-pair statistics sorted by q-value,
-                       with columns ``i``, ``j``, ``obs_lfc``, ``z``, ``p``,
-                       ``q``, and optionally ``p_maxT``.
+    dict
+        obs_lfc (K, K), null_lfc (n_perm, K, K), test (output of `test_pairwise_lfc`) and df (one row per pair, sorted by q-value).
     """
     obs_lfc  = compute_pairwise_lfc(P[gs_idx].mean(axis=0))
     null_lfc = np.array([compute_pairwise_lfc(null_mean_P[i])
@@ -279,47 +232,38 @@ def test_LFC_enrichment(P: np.ndarray, gs_idx: np.ndarray, null_mean_P: np.ndarr
 
 def test_sepLFC_enrichment(P: np.ndarray, gs_idx: np.ndarray, null_mean_P: np.ndarray):
     """
-    Test the separating LFC of a gene set against permutation null distributions.
+    Test the gene set sepLFC against two nulls.
 
-    The sepLFC is the largest log2 gap between consecutive sorted cluster mean
-    loadings.  Two null comparisons are made: one where each random gene set
-    finds its own best sepLFC (``null_sepLFC``), and one where the null sets
-    are evaluated at the fixed cluster bipartition determined by the observed
-    gene set (``null_lfc_at_sep``).
+    sepLFC is the largest log2 gap between the sorted cluster means of P. The first null uses the best sepLFC of each random gene set; the second uses each random gene set's LFC at the observed split.
 
     Parameters
     ----------
-    P : np.ndarray, shape (G, K)
-        Full gene-by-cluster loading matrix.
-    gs_idx : np.ndarray of int
-        Indices of the gene set within ``P``.
-    null_mean_P : np.ndarray, shape (n_perm, K)
-        Null mean loading vectors from ``sample_null_P``.
+    P
+        P matrix (n_genes, K).
+    gs_idx
+        Gene set indices in P.
+    null_mean_P
+        Output of `sample_null_P`.
 
     Returns
     -------
-    result : dict with keys
-        ``gs_sepLFC``      : float — **arithmetic-mean sepLFC**.
-                             ``log2(min_h mean_g(P[:,h]) / max_l mean_g(P[:,l]))``.
-                             Averages P across genes first, then takes the log
-                             ratio.  Sensitive to absolute-scale genes; robust
-                             to per-gene outliers.
-        ``gs_geomean_LFC`` : float — **geometric-mean sepLFC**.
-                             ``mean_g(log2(min_h P[g,h] / max_l P[g,l]))``.
-                             Takes each gene's log ratio first, then averages.
-                             Gives equal weight to every gene regardless of
-                             absolute magnitude; captures consistent directional
-                             enrichment across the gene set.
-        ``sepL``           : list of int — cluster indices in the low group.
-        ``sepH``           : list of int — cluster indices in the high group.
-        ``idx_sorted_gs``  : list of int — cluster order sorted ascending by
-                             gene-set mean loading.
-        ``null_sepLFC``    : np.ndarray, shape (n_perm,) — best sepLFC of each
-                             random gene set.
-        ``null_lfc_at_sep``: np.ndarray, shape (n_perm,) — LFC of each random
-                             gene set evaluated at the observed bipartition.
-        ``p_vs_null_sep``  : float — empirical p-value vs. ``null_sepLFC``.
-        ``p_vs_null_fixed``: float — empirical p-value vs. ``null_lfc_at_sep``.
+    dict
+        gs_sepLFC
+            log2 of min over sepH / max over sepL of the gene set mean P.
+        gs_geomean_LFC
+            Mean over genes of log2(min over sepH / max over sepL of P).
+        sepL, sepH
+            Low and high cluster indices.
+        idx_sorted_gs
+            Clusters sorted by gene set mean P (ascending).
+        null_sepLFC
+            Best sepLFC of each random gene set (n_perm,).
+        null_lfc_at_sep
+            LFC of each random gene set at the observed split (n_perm,).
+        p_vs_null_sep
+            Empirical p-value against null_sepLFC.
+        p_vs_null_fixed
+            Empirical p-value against null_lfc_at_sep.
     """
     P_gs = P[gs_idx]   # (n_gs, K)
     gs_mean_P = P_gs.mean(axis=0)
@@ -380,27 +324,25 @@ def test_sepLFC_enrichment(P: np.ndarray, gs_idx: np.ndarray, null_mean_P: np.nd
 
 def compute_gene_lfc(P_gs: np.ndarray, gene_set: List[str], sepL: List[int], sepH: List[int], kind="extreme"):
     """
-    Compute each gene's individual LFC between the high and low cluster groups.
+    Compute each gene's LFC between the high and low clusters.
 
     Parameters
     ----------
-    P_gs : np.ndarray, shape (n_gs, K)
-        Gene-set rows of the aligned P matrix.
-    gene_set : list of str
-        Gene names corresponding to rows of ``P_gs``.
-    sepL : list of int
-        Cluster indices in the low group (from ``test_sepLFC_enrichment``).
-    sepH : list of int
-        Cluster indices in the high group.
-    kind : {"extreme", "mean"}
-        How to summarize each group's loading.  ``"extreme"`` uses the
-        most-conservative value (min of sepH, max of sepL); ``"mean"`` uses
-        the group mean. Default ``"extreme"``.
+    P_gs
+        Gene set rows of the P matrix (n_gs, K).
+    gene_set
+        Gene names of the P_gs rows.
+    sepL
+        Low cluster indices.
+    sepH
+        High cluster indices.
+    kind
+        "extreme" (min over sepH vs. max over sepL) or "mean" (group means).
 
     Returns
     -------
-    df : pd.DataFrame
-        Columns ``gene`` and ``LFC``, sorted descending by LFC.
+    pd.DataFrame
+        Columns gene and LFC, sorted by LFC (descending).
     """
     if kind == "extreme":
         P_high = P_gs[:, sepH].min(axis=1)   # conservative: min of high group
@@ -430,27 +372,25 @@ def compute_gene_lfc(P_gs: np.ndarray, gene_set: List[str], sepL: List[int], sep
 
 def run_gs_enrichment(results, gene_set_indices, modes, n_perm, rng_seed):
     """
-    Run P, LFC, and sepLFC enrichment for every requested mode.
+    Run the P, LFC and sepLFC enrichment tests for several modes.
 
     Parameters
     ----------
-    results : ClumpplingResults
-        Clumppling alignment results containing ``P_aligned_by_mode``.
-    gene_set_indices : np.ndarray of int
-        Gene indices for the gene set (output of ``resolve_gene_set``).
-    modes : list of str
-        Mode names to evaluate (subset of ``results.modes``).
-    n_perm : int
-        Number of permutations passed to ``sample_null_P``.
-    rng_seed : int
-        Random seed passed to ``sample_null_P``.
+    results
+        Results loaded with P matrices.
+    gene_set_indices
+        Gene set indices in P (from `resolve_gene_set`).
+    modes
+        Mode names.
+    n_perm
+        Number of random gene sets.
+    rng_seed
+        Random seed.
 
     Returns
     -------
-    res_by_mode : dict
-        Mapping ``mode -> {"p_res": ..., "lfc_res": ..., "sep_res": ...}``
-        where each value is the output of the corresponding
-        ``compute_*_enrichment`` function.
+    dict
+        {mode name: {"p_res", "lfc_res", "sep_res"}}, the outputs of `test_P_enrichment`, `test_LFC_enrichment` and `test_sepLFC_enrichment`.
     """
     res_by_mode = {}
     for mode in modes:

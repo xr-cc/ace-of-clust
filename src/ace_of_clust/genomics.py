@@ -1,9 +1,4 @@
-"""
-genomics.py
-
-Genomic peak-gene mapping utilities.
-
-"""
+"""Mapping between ATAC peaks and genes."""
 
 from __future__ import annotations
 
@@ -16,9 +11,7 @@ from .io import load_gene_intervals
 
 
 def _parse_peak(peak: str) -> Tuple[str, int, int]:
-    """
-    Parse peaks like "chr1:819912-823500".
-    """
+    """Parse a peak string such as "chr1:819912-823500"."""
     chrom, rest = peak.split(":", 1)
     start_s, end_s = rest.split("-", 1)
     start = int(start_s.replace(",", ""))
@@ -29,9 +22,7 @@ def _parse_peak(peak: str) -> Tuple[str, int, int]:
 
 
 def _normalize_chrom_lookup(chrom: str, gtf_chroms: Set[str]) -> Optional[str]:
-    """
-    Handle simple 'chr' vs no-'chr' mismatches.
-    """
+    """Match a chromosome name to the GTF, with or without the "chr" prefix."""
     if chrom in gtf_chroms:
         return chrom
     if chrom.startswith("chr"):
@@ -58,31 +49,33 @@ def match_peaks_to_genes(
     unassigned_label: str = "unassigned",
 ) -> List[str]:
     """
-    Map each peak to overlapping gene(s).
+    Map each peak to the genes it overlaps.
+
     Parameters
     ----------
     peaks
-        Iterable of peak strings like "chr1:819912-823500".
+        Peak strings such as "chr1:819912-823500".
     gtf_file
-        Path to GTF file.
+        GTF file.
     upstream
-        Number of bases upstream of gene TSS to include.
+        Bases added upstream of each gene.
     downstream
-        Number of bases downstream of gene end to include.
+        Bases added downstream of each gene.
     feature_type
-        GTF feature type to use (e.g., "gene", "transcript").
+        GTF feature type to use (e.g. "gene").
     source
-        GTF source to filter on (e.g., "HAVANA"), or None for no filtering.
+        GTF source to keep (e.g. "HAVANA"); None keeps all.
     gene_type_allowlist
-        Set of gene_type values to include, or None for no filtering.
+        gene_type values to keep; None keeps all.
     intergenic_label
-        Label to assign to peaks with no overlapping genes.
+        Label for peaks that overlap no gene.
     unassigned_label
-        Label to assign to peaks on chromosomes not in the GTF.
+        Label for peaks on chromosomes not in the GTF.
+
     Returns
     -------
-    List[str]
-        List of gene name(s) per peak, or intergenic/unassigned labels.
+    list of str
+        Per peak, the gene name, ";"-joined gene names, or a label.
     """
     peaks_list = list(peaks)
     n = len(peaks_list)
@@ -128,7 +121,6 @@ def match_peaks_to_genes(
         g_i = 0
         g_len = len(genes)
 
-        # Local variable bindings for tiny speed wins in tight loops
         genes_local = genes
         out_local = out
 
@@ -163,21 +155,29 @@ def peaks_with_top_gene_overlap(
     drop_labels=("intergenic", "unassigned", ""),
 ):
     """
-    For informative peaks, identify those overlapping top informative genes.
+    Find top peaks whose mapped genes are among the top genes.
+
     Parameters
     ----------
     df_informative_peaks_sorted
-        DataFrame of informative peaks, sorted by informativeness.
+        Peaks, sorted by importance.
     df_informative_genes_sorted
-        DataFrame of informative genes, sorted by informativeness.
+        Genes, indexed by name and sorted by importance.
     n_top
-        Number of top features to consider. If None, use all.
+        Number of top peaks and genes to use; None uses all.
     mapped_col
-        Column in peaks DataFrame containing mapped gene names.
+        Column of the peaks DataFrame with the mapped gene names.
     sep
-        Separator for multiple gene names in mapped_col.
+        Separator between gene names in mapped_col.
     drop_labels
-        Labels to exclude from consideration.
+        Gene names to ignore (e.g. "intergenic").
+
+    Returns
+    -------
+    out_overlap_only
+        Top peaks with at least one top gene.
+    out
+        All top peaks, with columns overlap_genes and has_overlap.
     """
     # Subset
     if n_top is None:
@@ -220,19 +220,21 @@ def peaks_with_top_gene_overlap(
 
 def make_col_unique(df, col, na_label: str = "NA"):
     """
-    Make entries in `col` unique by appending suffixes to duplicates.
+    Make the values of a column unique by adding suffixes (_1, _2, ...) to duplicates.
+
     Parameters
     ----------
     df
         Input DataFrame.
     col
-        Column name to make unique.
+        Column name.
     na_label
-        Label to use for NaN entries.
+        Label for missing values.
+
     Returns
     -------
     np.ndarray
-        Array of unique strings corresponding to df[col].
+        Unique values, in the order of df[col].
     """
     dup_counts = df.groupby(col, dropna=False).cumcount()
 
