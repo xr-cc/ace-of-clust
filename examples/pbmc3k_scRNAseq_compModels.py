@@ -27,21 +27,17 @@ qfilelists, qnamelists, mode_stats_files = aoc.prepare_compmodels(
 )
 
 # 2) Add the reference clustering results "scanpy.tutorial" qfilelist, qnamelist, mode_stats file
-gt_qfile = example_data_dir / "dummy" / "scanpy_tutorial.Q"
+gt_qfile = example_data_dir / "reference" / "scanpy_tutorial.Q"
 gt_qfile_file = example_data_dir / "comp_models" / f"hvg_hc" / "ref.qfilelist"
-# write this to a .qfilelist file
 with open(gt_qfile_file, "w") as f:
     f.write(str(gt_qfile) + "\n")
 gt_qname_file = example_data_dir / "comp_models" / f"hvg_hc" / "ref.qnamelist"
-# write this to a .qnamelist file
 with open(gt_qname_file, "w") as f:
     f.write("scanpy.tutorial\n")
 qfilelists.insert(0, str(gt_qfile_file))
 qnamelists.insert(0, str(gt_qname_file))
-# add "scanpy.tutorial" mode_stats file
-gt_mode_stats_file = example_data_dir / "dummy" / "mode_stats.txt"
+gt_mode_stats_file = example_data_dir / "reference" / "mode_stats.txt"
 mode_stats_files.insert(0, gt_mode_stats_file)
-# add "scanpy.tutorial" to models list
 models.insert(0, "scanpy.tutorial")
 
 # 3) Run compModels

@@ -1,13 +1,9 @@
-"""
-io.py
-
-Functions for loading clumppling's main and compModel outputs, as well as other related data.
-
-"""
+"""Loading Clumppling and compModels outputs and related input files."""
 
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Sequence, Tuple, Union, Optional, Literal, Set
@@ -25,48 +21,48 @@ GeneT = Tuple[int, int, str] # Gene tuple: (start, end, gene_name)
 @dataclass
 class ClumpplingResults:
     """
-    Container for all core clumppling outputs needed for analysis/plots.
+    Clumppling results for one model.
+
     Attributes
     ----------
-    align_dir : Path
-        Directory containing clumppling outputs
-        (e.g. output/clumppling/pbmc10k-tutorial_hc_output).
-    suffix : str
-        Suffix used in aligned Q filenames (e.g. "rep" or "avg").
-    mode_alignment : pd.DataFrame   
-        DataFrame loaded from 'mode_alignment.txt'.
-    mode_stats : pd.DataFrame
-        DataFrame loaded from 'mode_stats.txt'.
-    modes : List[str]
-        Flat list of mode names (e.g. ["K5M1", "K5M2", ...]).
-    mode_K : Dict[str, int] 
-        Mapping from mode name to K for that mode.
-    K_range : List[int]
-        Sorted unique K values across all modes.
-    K_max : int
-        Maximum K value across all modes.
-    mode_names_list : List[List[str]]
-        Grouped mode names by K (same structure as notebook).
-    Q_by_mode : Dict[str, np.ndarray]
-        Mapping from mode name to aligned membership matrix.
-    alignment_acrossK : Dict[str, Sequence[int]]
-        {"A-B" -> mapping from B->A (original indices)}
-    cost_acrossK : Dict[str, float]
-        Mapping from mode name to alignment cost.
-    all_modes_alignment : Dict[str, Sequence[int]]
-        {mode_name -> reordering (aligned columns)}
-    mode_coord_dict : Dict[str, Tuple[int, int]]
-        {mode_name -> (row_idx, col_idx)} grid by K.
-    mode_sep_coord_dict : Dict[Tuple[str, int], Tuple[int, int]]
-        {(mode_name, cls_idx) -> (row_idx, col_idx)}.
-    input_meta : pd.DataFrame | None
-        DataFrame loaded from 'input_meta.txt', if available.
-    Q_unaligned_by_mode : Dict[str, np.ndarray] | None
-        {mode_name -> unaligned membership matrix}, if loaded.
-    P_unaligned_by_mode : Dict[str, np.ndarray] | None
-        {mode_name -> unaligned feature matrix}, if loaded.
-    P_aligned_by_mode : Dict[str, np.ndarray] | None
-        {mode_name -> aligned feature matrix}, if loaded.
+    align_dir
+        Clumppling output directory.
+    suffix
+        Suffix of the aligned Q files ("rep" or "avg").
+    mode_alignment
+        Table from modes/mode_alignment.txt.
+    mode_stats
+        Table from modes/mode_stats.txt.
+    modes
+        Mode names (e.g. "K5M1").
+    mode_K
+        {mode name: K}.
+    K_range
+        Sorted K values.
+    K_max
+        Largest K.
+    mode_names_list
+        Mode names grouped by K.
+    Q_by_mode
+        {mode name: aligned Q matrix (n_cells, K)}.
+    alignment_acrossK
+        {"A-B": mapping of clusters of B to clusters of A, in original indices}.
+    cost_acrossK
+        {"A-B": alignment cost}.
+    all_modes_alignment
+        {mode name: column order after alignment}.
+    mode_coord_dict
+        {mode name: (row, column)} in a grid by K.
+    mode_sep_coord_dict
+        {(mode name, cluster index): (row, column)}.
+    input_meta
+        Table from input/input_meta.txt, if loaded.
+    Q_unaligned_by_mode
+        {mode name: unaligned Q matrix}, if loaded.
+    P_unaligned_by_mode
+        {mode name: unaligned P matrix (n_features, K)}, if loaded.
+    P_aligned_by_mode
+        {mode name: aligned P matrix (n_features, K)}, if loaded.
     """
 
     # paths
@@ -82,7 +78,7 @@ class ClumpplingResults:
     mode_K: Dict[str, int]                  # {mode_name -> K for that mode}
     K_range: List[int]                      # sorted unique K values
     K_max: int                              # max K across all modes
-    mode_names_list: List[List[str]]        # grouped mode names by K (same structure as notebook)
+    mode_names_list: List[List[str]]        # grouped mode names by K
 
     # aligned Q matrices
     Q_by_mode: Dict[str, np.ndarray]        # {mode_name -> aligned membership matrix}
@@ -103,10 +99,7 @@ class ClumpplingResults:
     P_aligned_by_mode: Dict[str, np.ndarray] | None = None
 
     def reorder_inds(self, reorder_idx: Sequence[int]) -> ClumpplingResults:
-        """
-        Return a new CompModelsResults with all Q matrices reordered
-        according to reorder_idx.
-        """
+        """Return a copy with the cells (Q rows) reordered by reorder_idx."""
         new_Q_by_mode = {
             mode: Q[reorder_idx, :]
             for mode, Q in self.Q_by_mode.items()
@@ -144,43 +137,36 @@ class ClumpplingResults:
 @dataclass
 class CompModelsResults:
     """
-    Container for clumppling.compModels outputs and associated metadata.
+    compModels results for several models.
 
     Attributes
     ----------
-    res_dir : Path
-        Directory containing compModels outputs
-        (e.g. output/comp_models/pbmc10k-tutorial_hc_output).
-    input_dir : Optional[Path]
-        Directory containing per-model input stats for compModels
-        (e.g. output/comp_models/pbmc10k-tutorial_hc).
-    models : List[str]
-        Model names (e.g. "rna.seurat.louvain", "rna.seurat.leiden", ...).
-    modes_by_model : Dict[str, List[str]]
-        For each model, a list of *short* mode names with the model prefix
-        stripped, e.g. {"rna.seurat.louvain": ["K21M1", "K21M2", ...]}.
-    full_mode_names_by_model : Dict[str, List[str]]
-        For each model, the full mode names as used in filenames,
-        e.g. {"rna.seurat.louvain": ["rna.seurat.louvain_K21M1", ...]}.
-    full_mode_names : List[str]
-        Flat list of all full mode names across all models.
-    Q_by_mode : Dict[str, np.ndarray]
-        Mapping full mode name -> aligned membership matrix Q loaded from
-        res_dir / "aligned" / f"{mode}.Q".
-    all_modes_alignment : Dict[str, Sequence[int]]
-        Mapping full mode name -> global alignment pattern, parsed from
-        res_dir / "aligned" / "all_modes_alignment.txt" if present.
-        (Keys are full mode names; values are index patterns.)
-    alignment_across_all : Optional[Dict[str, Sequence[int]]]
-        Reserved for cross-mode alignment patterns (currently left as None
-        unless you later decide to parse additional files).
-    cost_across_all : Optional[Dict[str, float]]
-        Reserved for cross-mode alignment costs (currently None).
-    mode_stats_by_model : Dict[str, pd.DataFrame]
-        For each model, its original mode_stats DataFrame loaded from
-        input_dir / f"{model}_mode_stats.txt", if available.
-    K_max : int
-    K_max_by_model: Dict[str, int]
+    res_dir
+        compModels output directory.
+    input_dir
+        compModels input directory, with the mode_stats files.
+    models
+        Model names.
+    modes_by_model
+        {model: mode names (e.g. "K21M1")}.
+    full_mode_names_by_model
+        {model: full mode names (e.g. "model_K21M1")}.
+    full_mode_names
+        All full mode names.
+    Q_by_mode
+        {full mode name: aligned Q matrix (n_cells, K)}.
+    all_modes_alignment
+        {full mode name: column order after alignment}.
+    alignment_across_all
+        {"A-B": mapping of clusters of B to clusters of A}.
+    cost_across_all
+        {"A-B": alignment cost}.
+    mode_stats_by_model
+        {model: mode_stats table}.
+    K_max
+        Largest K over all models.
+    K_max_by_model
+        {model: largest K}.
     """
 
     res_dir: Path
@@ -204,22 +190,16 @@ class CompModelsResults:
 
 
     def get_Q(self, full_mode_name: str) -> np.ndarray:
-        """Return the aligned Q matrix for a full mode name."""
+        """Aligned Q matrix of a full mode name."""
         return self.Q_by_mode[full_mode_name]
 
     def get_Q_for(self, model: str, mode_short: str) -> np.ndarray:
-        """
-        Return the aligned Q matrix for a (model, short_mode_name) pair,
-        where short_mode_name is e.g. 'K21M1'.
-        """
+        """Aligned Q matrix of a model and mode name (e.g. "K21M1")."""
         full_name = f"{model}_{mode_short}"
         return self.Q_by_mode[full_name]
     
     def reorder_inds(self, reorder_idx: Sequence[int]) -> CompModelsResults:
-        """
-        Return a new CompModelsResults with all Q matrices reordered
-        according to reorder_idx.
-        """
+        """Return a copy with the cells (Q rows) reordered by reorder_idx."""
         new_Q_by_mode = {
             mode: Q[reorder_idx, :]
             for mode, Q in self.Q_by_mode.items()
@@ -243,53 +223,21 @@ class CompModelsResults:
 
 
 def load_mode_alignment(align_dir: PathLike) -> pd.DataFrame:
-    """
-    Load the 'mode_alignment.txt' table produced by clumppling.
-
-    Parameters
-    ----------
-    align_dir : path-like
-        The main output directory passed as `-o/--output` to clumppling.
-
-    Returns
-    -------
-    mode_alignment : pd.DataFrame
-    """
+    """Load modes/mode_alignment.txt from a Clumppling output directory."""
     align_dir = Path(align_dir)
     fname = align_dir / "modes" / "mode_alignment.txt"
     return pd.read_csv(fname)
 
 
 def load_mode_stats(align_dir: PathLike) -> pd.DataFrame:
-    """
-    Load the 'mode_stats.txt' table produced by clumppling.
-
-    Parameters
-    ----------
-    align_dir : path-like
-        The main output directory passed as `-o/--output` to clumppling.
-
-    Returns
-    -------
-    mode_stats : pd.DataFrame
-    """
+    """Load modes/mode_stats.txt from a Clumppling output directory."""
     align_dir = Path(align_dir)
     fname = align_dir / "modes" / "mode_stats.txt"
     return pd.read_csv(fname)
 
 
 def _get_mode_names(mode_alignment: pd.DataFrame) -> List[str]:
-    """
-    Extract the list of unique mode names from mode_alignment.
-
-    Parameters
-    ----------
-    mode_alignment : pd.DataFrame
-
-    Returns
-    -------
-    modes : list of str
-    """
+    """Unique mode names in mode_alignment."""
     if "Mode" not in mode_alignment.columns:
         raise KeyError("mode_alignment must contain a 'Mode' column")
 
@@ -308,18 +256,7 @@ def _get_mode_names(mode_alignment: pd.DataFrame) -> List[str]:
 
 
 def load_input_meta(align_dir: PathLike) -> pd.DataFrame:
-    """
-    Load the 'input_meta.txt' table that links original Q/P files to modes.
-
-    Parameters
-    ----------
-    align_dir : path-like
-        The main clumppling output directory.
-
-    Returns
-    -------
-    input_meta : pd.DataFrame
-    """
+    """Load input/input_meta.txt, which links the input files to modes."""
     align_dir = Path(align_dir)
     fname = align_dir / "input" / "input_meta.txt"
     input_meta = pd.read_csv(fname, dtype=str, header=None)
@@ -350,41 +287,31 @@ def load_unaligned_for_modes(
     p_ext: str | None = None,
 ) -> Dict[str, np.ndarray]:
     """
-    Load the unaligned P matrices for each mode.
+    Load the unaligned P or Q matrix of each mode's representative run.
 
     Parameters
     ----------
-    cls_dir : path-like
-        Directory that contains the original MMC / clustering outputs, i.e.
-        where the '*.P' files live.
-    align_dir : path-like
-        Main clumppling output directory (used to load mode_stats and input_meta
-        if they are not provided).
-    mat_type : Literal["P", "Q"]
-        Type of matrix to load. Currently "P" and "Q" are supported.
-    modes : sequence of str, optional
-        Mode names to load. If None, they are inferred from mode_alignment.
-    mode_stats : pd.DataFrame, optional
-        If already loaded, pass it to avoid re-reading.
-    input_meta : pd.DataFrame, optional
-        If already loaded, pass it to avoid re-reading.
-    delimiter : str or None, default None
-        Delimiter for the matrix files. ``None`` (default) splits on any
-        whitespace, which correctly handles both single- and double-space
-        separated outputs (e.g. fastStructure ``meanP``/``meanQ`` files).
-    p_ext : str, optional
-        Extension to use for P files when ``mat_type="P"``.  When set, the
-        extension already present on ``orig_file_name`` (e.g. ``.meanQ`` for
-        fastStructure) is stripped via ``Path.stem`` and replaced with this
-        value.  For example, pass ``p_ext="meanP"`` for fastStructure runs
-        whose P files end in ``.meanP``.  If *None* (default), the old
-        behaviour is preserved: ``mat_type`` is appended directly to
-        ``orig_file_name``.
+    cls_dir
+        Directory with the clustering files.
+    align_dir
+        Clumppling output directory.
+    mat_type
+        "P" or "Q".
+    modes
+        Mode names; None uses all modes.
+    mode_stats
+        Mode stats table; None loads it from align_dir.
+    input_meta
+        Input metadata table; None loads it from align_dir.
+    delimiter
+        Column delimiter; None splits on any whitespace.
+    p_ext
+        Extension of the P files (e.g. "meanP" for fastStructure); None uses mat_type.
 
     Returns
     -------
-    mat_by_mode : dict
-        {mode_name -> np.ndarray of shape (n_features, K_mode)}
+    dict
+        {mode name: matrix}.
     """
     cls_dir = Path(cls_dir)
     align_dir = Path(align_dir)
@@ -429,27 +356,23 @@ def load_aligned_Qs(
     delimiter: str = " ",
 ) -> Dict[str, np.ndarray]:
     """
-    Load aligned membership matrices for each mode from 'modes_aligned'.
-
-    Files are expected to be named like:
-        <mode_name>_<suffix>.Q
-    e.g. "K17M1_rep.Q"
+    Load the aligned Q matrix of each mode from modes_aligned/{mode}_{suffix}.Q.
 
     Parameters
     ----------
-    align_dir : path-like
-        Main clumppling output directory (same as used in load_mode_alignment).
-    modes : sequence of str
-        Mode names to load, e.g. from _get_mode_names(...).
-    suffix : {"rep", "avg"}, default "rep"
-        Suffix used by clumppling when writing aligned modes.
-    delimiter : str, default " "
-        Delimiter for the Q files.
+    align_dir
+        Clumppling output directory.
+    modes
+        Mode names.
+    suffix
+        "rep" or "avg".
+    delimiter
+        Column delimiter.
 
     Returns
     -------
-    Q_by_mode : dict
-        {mode_name -> np.ndarray of shape (n_individuals, K_mode)}
+    dict
+        {mode name: Q matrix (n_cells, K)}.
     """
     align_dir = Path(align_dir)
     q_dir = align_dir / "modes_aligned"
@@ -470,21 +393,19 @@ def load_alignment_across_K(
     align_file: str | PathLike,
 ) -> Tuple[Dict[str, Sequence[int]], Dict[str, float]]:
     """
-    Load alignment_acrossK and cost_acrossK from the file written by
-    clumppling.write_alignment_across_k.
+    Load cluster mappings and costs between modes.
 
     Parameters
     ----------
-    align_file : str | PathLike
-        Path to the alignment file.
+    align_file
+        Alignment file written by Clumppling or compModels.
 
     Returns
     -------
-    alignment_acrossK : dict
-        {pair_label -> alignment pattern}, where `alignment pattern` is
-        a sequence of ints mapping clusters between two modes.
-    cost_acrossK : dict
-        {pair_label -> float cost}
+    alignment_acrossK
+        {"A-B": mapping of clusters of B to clusters of A}.
+    cost_acrossK
+        {"A-B": alignment cost}.
     """
 
     alignment_acrossK: Dict[str, Sequence[int]] = {}
@@ -518,23 +439,21 @@ def load_all_modes_alignment(
     filename: str | None = None,
 ) -> Dict[str, Sequence[int]]:
     """
-    Load all_modes_alignment from the file written by clumppling.write_reordered_across_k.
+    Load the column order of each mode after alignment.
 
     Parameters
     ----------
-    align_dir : path-like
-        Main clumppling output directory.
-    suffix : {"rep", "avg"}, default "rep"
-        Suffix used when writing the all-modes alignment file.
-    filename : str, optional
-        Override the default filename if needed. If None, uses
-        f"all_modes_alignment_{suffix}.txt".
+    align_dir
+        Clumppling output directory.
+    suffix
+        "rep" or "avg".
+    filename
+        File name; None uses all_modes_alignment_{suffix}.txt.
 
     Returns
     -------
-    all_modes_alignment : dict
-        {mode_label -> alignment_pattern}, where alignment_pattern is obtained
-        by applying str_to_pattern to the stored pattern string.
+    dict
+        {mode name: column order}.
     """
     align_dir = Path(align_dir)
     if filename is None:
@@ -563,25 +482,7 @@ def load_all_modes_alignment(
 
 
 def group_modes_by_K(mode_names: Sequence[str]) -> List[List[str]]:
-    """
-    Group a flat list of mode names into a list-of-lists by K.
-
-    Given a list like:
-        ['K17M1', 'K17M2', 'K18M1', 'K19M1']
-    return:
-        [['K17M1', 'K17M2'], ['K18M1'], ['K19M1']]
-
-    This mirrors the notebook helper.
-
-    Parameters
-    ----------
-    mode_names : sequence of str
-
-    Returns
-    -------
-    mode_names_list : list of list of str
-        One sublist per K, ordered by increasing K.
-    """
+    """Group mode names by K, e.g. ["K3M1", "K3M2", "K4M1"] -> [["K3M1", "K3M2"], ["K4M1"]]."""
     groups: Dict[int, List[str]] = defaultdict(list)
 
     for name in mode_names:
@@ -596,17 +497,7 @@ def group_modes_by_K(mode_names: Sequence[str]) -> List[List[str]]:
 
 
 def infer_K_range(mode_names: Sequence[str]) -> List[int]:
-    """
-    Convenience helper to get sorted K values from mode names.
-
-    Parameters
-    ----------
-    mode_names : sequence of str, e.g. ['K17M1', 'K17M2', 'K18M1']
-
-    Returns
-    -------
-    K_range : list of int, e.g. [17, 18]
-    """
+    """Sorted K values of mode names, e.g. ["K3M1", "K3M2", "K4M1"] -> [3, 4]."""
     K_set = set()
     for name in mode_names:
         k_str = name.split("M")[0][1:]
@@ -626,32 +517,32 @@ def load_clumppling_results(
     p_ext: str | None = None,
 ) -> ClumpplingResults:
     """
-    Load clumppling results from the specified directory.
+    Load Clumppling results.
+
+    Q rows follow Clumppling's order, which differs from the input order if Clumppling regrouped cells by --ind_labels (see `undo_clumppling_regroup`).
 
     Parameters
     ----------
-    align_dir : path-like
-        The clumppling output directory used as `-o/--output`.
-    suffix : {"rep", "avg"}, default "rep"
-        Suffix used in the aligned Q filenames, e.g. "K17M1_rep.Q".
-    round_Q : bool, default False
-        If True, apply np.rint to each aligned Q matrix to get hard cluster
-        memberships.
-    cls_dir : path-like, optional
-        Directory containing the original clustering outputs (*.P files).
-        If provided and load_P is True, P matrices will be loaded.
-    load_P : bool, default True
-        Whether to attempt loading P matrices at all. Set to False if you
-        know this run has no P files (e.g. hard clustering only).
-    strict_P : bool, default False
-        If True, missing P files raise FileNotFoundError.
-        If False, missing P files will emit a warning and skip P loading.
-    p_ext : str, optional
-        File extension for P matrices.  Use this when the tool writes P files
-        with a non-standard extension, e.g. ``p_ext="meanP"`` for
-        fastStructure (whose P files end in ``.meanP`` rather than ``.P``).
-        When *None* (default), the extension is derived from ``mat_type``
-        as before.
+    align_dir
+        Clumppling output directory.
+    suffix
+        Suffix of the aligned Q files ("rep" or "avg").
+    round_Q
+        Round Q to hard memberships.
+    cls_dir
+        Directory with the clustering files; needed to load P or unaligned Q.
+    load_unaligned
+        Also load the unaligned Q matrices.
+    load_P
+        Load the P matrices.
+    strict_P
+        Raise an error if P files are missing; otherwise warn and continue without P.
+    p_ext
+        Extension of the P files (e.g. "meanP" for fastStructure); None uses "P".
+
+    Returns
+    -------
+    ClumpplingResults
     """
     align_dir = Path(align_dir)
 
@@ -662,6 +553,12 @@ def load_clumppling_results(
     modes = _get_mode_names(mode_alignment)  # e.g. ["K17M1", "K17M2", "K18M1", ...]
 
     Q_by_mode = load_aligned_Qs(align_dir, modes=modes, suffix=suffix)
+
+    idx_path = align_dir / "input" / "ind_labels_indices.txt"
+    if idx_path.exists():
+        print("[load_clumppling_results] Note: rows of the Q matrices are in Clumppling's "
+              "regrouped order, not input order. Use undo_clumppling_regroup to restore input order.")
+
     mode_K: Dict[str, int] = {m: Q.shape[1] for m, Q in Q_by_mode.items()}
 
     if round_Q:
@@ -709,6 +606,12 @@ def load_clumppling_results(
                     mode_stats=mode_stats,
                     input_meta=input_meta,
                 )
+                if idx_path.exists():
+                    # same row order as Q_by_mode
+                    reorder_indices = np.loadtxt(idx_path, dtype=int)
+                    Q_unaligned_by_mode = {
+                        m: Q[reorder_indices] for m, Q in Q_unaligned_by_mode.items()
+                    }
             if load_P:
                 P_unaligned_by_mode = load_unaligned_for_modes(
                     cls_dir=cls_dir,
@@ -728,12 +631,11 @@ def load_clumppling_results(
 
         except FileNotFoundError as e:
             if strict_P:
-                # preserve old behaviour
                 raise
             else:
                 # soft-fail: warn and continue without P
                 print(
-                    f"[sc_clumppling] Warning: {e}. "
+                    f"[load_clumppling_results] Warning: {e}. "
                     "No unaligned Q or P matrices will be attached to ClumpplingResults for this run."
                 )
                 input_meta = None
@@ -773,27 +675,18 @@ def _load_mode_lists_from_replicates(
     List[str],
 ]:
     """
-    Discover models and per-model mode lists from *_replicates.txt files.
-
-    Each such file is expected to live directly in `res_dir` and have a
-    name like '{model}_replicates.txt', containing one full mode name
-    per line, e.g.:
-
-        rna.seurat.louvain_K21M1
-        rna.seurat.louvain_K21M2
-        ...
+    Find models and modes from the {model}_replicates.txt files in res_dir.
 
     Returns
     -------
-    models : list[str]
-        Model names derived from filenames (stem minus '_replicates').
-    modes_by_model : dict[str, list[str]]
-        For each model, list of *short* mode names (prefix stripped),
-        e.g. {"rna.seurat.louvain": ["K21M1", "K21M2", ...]}.
-    full_mode_names_by_model : dict[str, list[str]]
-        For each model, the full mode names (as in files).
-    full_mode_names : list[str]
-        Flat list of all full mode names across all models.
+    models
+        Model names.
+    modes_by_model
+        {model: mode names}.
+    full_mode_names_by_model
+        {model: full mode names}.
+    full_mode_names
+        All full mode names.
     """
     replicates_files = sorted(res_dir.glob("*_replicates.txt"))
     if not replicates_files:
@@ -831,23 +724,18 @@ def load_compmodels_results(
     input_dir: str | Path | None = None,
 ) -> CompModelsResults:
     """
-    Load outputs from `clumppling.compModels` into a CompModelsResults object.
+    Load compModels results.
 
     Parameters
     ----------
-    res_dir : str or Path
-        Directory containing compModels outputs, e.g.
-        .../output/comp_models/pbmc10k-tutorial_hc_output
-    input_dir : str or Path, optional
-        Directory containing per-model input stats used for compModels,
-        e.g. .../output/comp_models/pbmc10k-tutorial_hc.
-        If None, mode_stats_by_model will be empty.
+    res_dir
+        compModels output directory.
+    input_dir
+        compModels input directory, with the mode_stats files; None leaves mode_stats_by_model empty.
 
     Returns
     -------
     CompModelsResults
-        Structured container for multi-model Q matrices, mode lists,
-        global alignment patterns, and per-model mode_stats.
     """
     res_dir = Path(res_dir)
     if input_dir is not None:
@@ -893,7 +781,6 @@ def load_compmodels_results(
                     continue
                 all_modes_alignment[mode_label] = str_to_pattern(pat_str)
     else:
-        # If it's not there, just leave the dict empty.
         all_modes_alignment = {}
 
     # Load cross-mode alignment/cost slots.
@@ -951,18 +838,19 @@ def add_pairwise_alignment(
     alignment: Dict[str, Sequence[int]]
     ) -> ClumpplingResults:
     """
-    Return a *new* ClumpplingResults with alignment updated.
+    Return a copy with the columns of each mode reordered by a new alignment.
+
     Parameters
     ----------
-    res : ClumpplingResults
-        Original results object.
-    alignment : dict
-        New alignment patterns per mode, e.g. {'K17M1': [2,0,1], ...}
+    res
+        Results to update.
+    alignment
+        {mode name: column order}, e.g. {"K3M1": [2, 0, 1]}.
+
     Returns
     -------
     ClumpplingResults
-        New results object with updated Q_by_mode, P_aligned_by_mode,
-        and all_modes_alignment according to the new alignment.
+        Results with Q_by_mode, P_aligned_by_mode and all_modes_alignment updated.
     """
     # make sure all keys in alignment are in modes
     assert np.all([mode in res.modes for mode in alignment])
@@ -1040,25 +928,20 @@ def subset_compmodels(
     K_values: Optional[Sequence[int]] = None,
 ) -> CompModelsResults:
     """
-    Return a new CompModelsResults object restricted to a subset of K values.
-
-    A mode is kept if its number of clusters K = Q.shape[1] satisfies:
-      - if K_values is not None: K in K_values
-      - else: K_min <= K <= K_max (with open ends if K_min/K_max is None)
+    Restrict a CompModelsResults to modes with selected K.
 
     Parameters
     ----------
-    comp_res : CompModelsResults
-        Original full comparison results.
-    K_min, K_max : int, optional
-        Lower / upper bounds for K. Ignored if K_values is provided.
-    K_values : sequence of int, optional
-        Explicit set of K values to keep.
+    comp_res
+        Full results.
+    K_min, K_max
+        Range of K to keep; None leaves that end open. Ignored if K_values is given.
+    K_values
+        K values to keep.
 
     Returns
     -------
     CompModelsResults
-        New results object with only the selected modes and updated metadata.
     """
     # --- compute K per mode ------------------------------------------
     K_by_mode: Dict[str, int] = {
@@ -1206,11 +1089,7 @@ def _open_maybe_gzip(path: str):
     return gzip.open(path, "rt") if path.endswith(".gz") else open(path, "rt")
 
 def _extract_attr(attr: str, key: str) -> Optional[str]:
-    """
-    Fast attribute extractor for GTF attributes.
-    Looks for: key "value";
-    Avoids regex for speed on huge files.
-    """
+    """Value of key in a GTF attribute string (key "value";)."""
     token = key + ' "'
     i = attr.find(token)
     if i == -1:
@@ -1229,24 +1108,21 @@ def load_gene_set(
     prefix: str | None = None,
 ) -> List[str]:
     """
-    Load a gene-set file (one symbol per line) from a directory.
+    Load a gene set file (one gene name per line).
 
     Parameters
     ----------
-    name : str
-        Gene-set name, used as the file stem (e.g. ``"HALLMARK_E2F_TARGETS"``
-        or just ``"E2F_TARGETS"`` when ``prefix="HALLMARK_"``).
-    gene_set_dir : path-like
-        Directory containing ``.txt`` gene-set files.
-    prefix : str, optional
-        If provided and ``name`` does not already start with it, the prefix is
-        prepended before constructing the filename.  Useful for MSigDB Hallmark
-        collections where files are named ``HALLMARK_<name>.txt``.
+    name
+        Gene set name, the file stem (e.g. "HALLMARK_E2F_TARGETS").
+    gene_set_dir
+        Directory with the gene set files ({name}.txt).
+    prefix
+        Prefix added to name if missing (e.g. "HALLMARK_").
 
     Returns
     -------
     list of str
-        Gene symbols, one per line, with blank lines removed.
+        Gene names.
     """
     gene_set_dir = Path(gene_set_dir)
     if prefix is not None and not name.startswith(prefix):
@@ -1265,11 +1141,12 @@ def load_gene_intervals(
     gene_type_allowlist: Optional[Set[str]] = None,
 ) -> Dict[str, List[GeneT]]:
     """
-    Stream a (possibly gzipped) GTF and extract only the intervals needed.
-    Returns dict: chrom -> sorted list of (start, end, gene_name).
+    Read gene intervals from a GTF file (gzipped or not).
+
+    Returns {chromosome: sorted (start, end, gene name)}.
     """
     gtf: Dict[str, List[GeneT]] = {}
-    append = None  # minor micro-opt for inner loop readability
+    append = None
 
     with _open_maybe_gzip(gtf_file) as f:
         for line in f:
@@ -1303,7 +1180,7 @@ def load_gene_intervals(
                 or "unknown_gene"
             )
 
-            # Extend relative to strand (same semantics as your reference)
+            # Extend relative to strand
             if strand == "-":
                 ext_start = max(1, start - downstream)
                 ext_end = end + upstream
@@ -1323,9 +1200,7 @@ def load_gene_intervals(
 
 
 def _parse_peak_string(peak: str) -> Tuple[str, int, int]:
-    """
-    'chr1:10109-10357' -> ('chr1', 10109, 10357)
-    """
+    """Parse "chr1:10109-10357" into ("chr1", 10109, 10357)."""
     chrom, rest = peak.split(":", 1)
     start, end = rest.split("-", 1)
     return chrom, int(start), int(end)
@@ -1334,15 +1209,7 @@ def _parse_peak_string(peak: str) -> Tuple[str, int, int]:
 def _build_peak_index(
     peaks: Iterable[str],
 ) -> Tuple[Dict[str, List[Tuple[int, int]]], Dict[str, List[int]]]:
-    """
-    Build per-chromosome sorted intervals and start positions for fast overlap queries.
-    Parameters:
-        peaks: Iterable of peak strings, e.g. ['chr1:10109-10357', ...] 
-    
-    Returns:
-        intervals_by_chr: {chrom: [(start, end), ...] sorted by start}
-        starts_by_chr:    {chrom: [start1, start2, ...] sorted}
-    """
+    """Sort peak intervals and their starts per chromosome, for overlap queries."""
     intervals_by_chr: Dict[str, List[Tuple[int, int]]] = {}
 
     for s in peaks:
@@ -1365,18 +1232,7 @@ def _has_overlap(
     intervals_by_chr: Dict[str, List[Tuple[int, int]]],
     starts_by_chr: Dict[str, List[int]],
 ) -> bool:
-    """
-    Check if the interval (chrom, start, end) overlaps any peak interval.
-    Uses binary search on sorted starts for efficiency.
-    Parameters:
-        chrom: chromosome name
-        start: interval start (0-based)
-        end:   interval end (0-based, exclusive)
-        intervals_by_chr: {chrom: [(start, end), ...] sorted by start}
-        starts_by_chr:    {chrom: [start1, start2, ...] sorted}
-    Returns:
-        True if overlap found, False otherwise.
-    """
+    """Whether an interval overlaps any peak, by binary search on the sorted starts."""
     if chrom not in intervals_by_chr:
         return False
 
@@ -1407,22 +1263,23 @@ def filter_bed_by_peaks(
     ccre_id_col: int = 3,
 ) -> Tuple[List[List[str]], Set[str]]:
     """
-    Stream a BED file and keep only lines that overlap any of the given peaks.
+    Keep the lines of a BED file that overlap any peak.
+
     Parameters
     ----------
-    bed_path : str or Path
-        Path to the BED file to filter.
-    peaks : iterable of str
-        Iterable of peak strings, e.g. ['chr1:10109-10357', ...]
-    ccre_id_col : int, default 3
-        Column index (0-based) in the BED file where the cCRE ID is located.
+    bed_path
+        BED file.
+    peaks
+        Peak strings such as "chr1:10109-10357".
+    ccre_id_col
+        Column (0-based) with the cCRE ID.
 
     Returns
     -------
-    filtered_rows : list of list[str]
-        Each inner list is the BED line split by '\t'.
-    kept_ids : set of str
-        Set of cCRE IDs (from column `ccre_id_col`) for filtered rows.
+    filtered_rows
+        Kept lines, split into fields.
+    kept_ids
+        cCRE IDs of the kept lines.
     """
     intervals_by_chr, starts_by_chr = _build_peak_index(peaks)
 
@@ -1435,7 +1292,7 @@ def filter_bed_by_peaks(
             if not line.strip():
                 continue
             if line.startswith("#"):
-                # skip comments; remove this if you want to keep them
+                # skip comment lines
                 continue
 
             fields = line.rstrip("\n").split("\t")
@@ -1459,25 +1316,25 @@ def filter_gene_links_by_ccre(
     keep_header: bool = True,
 ) -> Tuple[List[str] | None, List[List[str]]]:
     """
-    Stream a gene-link file and keep only rows whose cCRE ID is in kept_ids.
+    Keep the lines of a gene-link file whose cCRE ID is in kept_ids.
+
     Parameters
     ----------
-    gene_links_path : str or Path
-        Path to the gene-link file to filter.
-    kept_ids : set of str
-        Set of cCRE IDs to keep.
-    ccre_id_col : int, default 0
-        Column index (0-based) in the gene-link file where the cCRE ID is located.
-    keep_header : bool, default True
-        Whether to keep and return the header line (first line) of the file.
+    gene_links_path
+        Gene-link file.
+    kept_ids
+        cCRE IDs to keep.
+    ccre_id_col
+        Column (0-based) with the cCRE ID.
+    keep_header
+        Return the first line as a header.
 
     Returns
     -------
-    header : list[str] or None
-        Header columns if keep_header=True and file has at least one line,
-        otherwise None.
-    filtered_rows : list of list[str]
-        Data rows (split by '\t') with cCRE IDs in kept_ids.
+    header
+        Header fields, or None.
+    filtered_rows
+        Kept lines, split into fields.
     """
     gene_links_path = Path(gene_links_path)
 
@@ -1509,6 +1366,199 @@ def filter_gene_links_by_ccre(
     return header, filtered_rows
 
 
+def undo_clumppling_regroup(Q, align_dir):
+    """
+    Restore the input order of Q rows that Clumppling regrouped by --ind_labels.
+
+    Parameters
+    ----------
+    Q
+        Array (..., n_cells, K) in Clumppling's row order, as in Q_by_mode.
+    align_dir
+        Clumppling output directory.
+
+    Returns
+    -------
+    np.ndarray
+        Q in input row order; unchanged if input/ind_labels_indices.txt does not exist.
+    """
+    idx_path = Path(align_dir) / "input" / "ind_labels_indices.txt"
+    if not idx_path.exists():
+        return Q
+    reorder_indices = np.loadtxt(idx_path, dtype=int)
+    return Q[..., np.argsort(reorder_indices), :]
+
+
+def load_clumppling_replicate_Qs(clumppling_dir, input_order=False):
+    """
+    Load the Q matrices of all runs of each mode, in the aligned column order.
+
+    Each run's columns are first matched to its mode's representative (modes/mode_alignment.txt), then put in the aligned order (modes_aligned/all_modes_alignment_rep.txt).
+
+    Parameters
+    ----------
+    clumppling_dir
+        Clumppling output directory.
+    input_order
+        Return rows in input order (see `undo_clumppling_regroup`); otherwise rows follow Clumppling's order, as in Q_by_mode.
+
+    Returns
+    -------
+    Q_reps_by_mode
+        {mode name: array (n_runs, n_cells, K)}.
+    rep_names_by_mode
+        {mode name: run names, in the order of the first axis}.
+    modes
+        Mode names sorted by K and mode index.
+    """
+    clumppling_dir = Path(clumppling_dir)
+
+    global_perm: dict = {}
+    with open(clumppling_dir / "modes_aligned" / "all_modes_alignment_rep.txt") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            mode_name, perm_str = line.split(":")
+            global_perm[mode_name.strip()] = (
+                np.array([int(x) - 1 for x in perm_str.split()], dtype=int)
+            )
+
+    within_df = pd.read_csv(clumppling_dir / "modes" / "mode_alignment.txt")
+
+    Q_lists: dict = {}
+    rep_names_by_mode: dict = {}
+
+    for _, row in within_df.iterrows():
+        mode     = row["Mode"]
+        rep_stem = row["Replicate"]
+        K        = len(global_perm[mode])
+
+        w_scatter = np.array([int(x) - 1 for x in str(row["Alignment"]).split()], dtype=int)
+        w_gather  = np.empty(K, dtype=int)
+        w_gather[w_scatter] = np.arange(K)
+
+        Q_raw = np.loadtxt(clumppling_dir / "input" / f"{rep_stem}.Q", ndmin=2)
+        Q_aligned = Q_raw[:, w_gather][:, global_perm[mode]]
+
+        Q_lists.setdefault(mode, []).append(Q_aligned)
+        rep_names_by_mode.setdefault(mode, []).append(rep_stem)
+
+    def _mode_sort_key(m):
+        k  = int(re.search(r"K(\d+)", m).group(1))
+        mi = int(re.search(r"M(\d+)", m).group(1))
+        return (k, mi)
+
+    modes = sorted(Q_lists, key=_mode_sort_key)
+    Q_reps_by_mode    = {m: np.stack(Q_lists[m], axis=0) for m in modes}
+    rep_names_by_mode = {m: rep_names_by_mode[m] for m in modes}
+
+    if input_order:
+        Q_reps_by_mode = {
+            m: undo_clumppling_regroup(Q, clumppling_dir) for m, Q in Q_reps_by_mode.items()
+        }
+    elif (clumppling_dir / "input" / "ind_labels_indices.txt").exists():
+        print("[load_clumppling_replicate_Qs] Note: rows of the Q matrices are in Clumppling's "
+              "regrouped order, not input order. Use input_order=True to pair them with input metadata.")
+
+    return Q_reps_by_mode, rep_names_by_mode, modes
+
+
+def load_clumppling_replicate_Ps(clumppling_dir, cls_dir, p_ext="P", strict_P=True):
+    """
+    Load the P matrices of all runs of each mode, in the aligned column order.
+
+    Columns are aligned as in `load_clumppling_replicate_Qs`.
+
+    Parameters
+    ----------
+    clumppling_dir
+        Clumppling output directory.
+    cls_dir
+        Directory with the clustering files.
+    p_ext
+        Extension of the P files ("P", or "meanP" for fastStructure).
+    strict_P
+        Raise an error if any P file is missing. Otherwise skip those runs with a warning, so runs and modes may differ from `load_clumppling_replicate_Qs` (match runs by name). An error is always raised if all P files are missing.
+
+    Returns
+    -------
+    P_reps_by_mode
+        {mode name: array (n_runs, n_features, K)}.
+    rep_names_by_mode
+        {mode name: run names, in the order of the first axis}.
+    modes
+        Mode names sorted by K and mode index.
+    """
+    clumppling_dir = Path(clumppling_dir)
+
+    global_perm: dict = {}
+    with open(clumppling_dir / "modes_aligned" / "all_modes_alignment_rep.txt") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            mode_name, perm_str = line.split(":")
+            global_perm[mode_name.strip()] = np.array(
+                [int(x) - 1 for x in perm_str.split()], dtype=int
+            )
+
+    raw_meta = pd.read_csv(
+        clumppling_dir / "input" / "input_meta.txt",
+        header=None, dtype=str,
+    )
+    mode_to_p: dict = {}
+    for _, row in raw_meta.iterrows():
+        orig_q  = Path(row[0].strip())
+        stem    = Path(row[1].strip()).stem
+        mode_to_p[stem] = Path(cls_dir) / f"{orig_q.stem}.{p_ext}"
+
+    within_df = pd.read_csv(clumppling_dir / "modes" / "mode_alignment.txt")
+
+    n_reps  = len(within_df)
+    missing = [mode_to_p[r] for r in within_df["Replicate"] if not mode_to_p[r].exists()]
+    if missing and (strict_P or len(missing) == n_reps):
+        raise FileNotFoundError(
+            f"{len(missing)}/{n_reps} P files not found (e.g. {missing[0]})."
+        )
+    if missing:
+        print(f"[load_clumppling_replicate_Ps] Warning: skipping {len(missing)}/{n_reps} "
+              f"replicates with missing P files (e.g. {missing[0]}).")
+
+    P_lists:   dict = {}
+    rep_names: dict = {}
+
+    for _, row in within_df.iterrows():
+        mode     = row["Mode"]
+        rep_stem = row["Replicate"]
+        K        = len(global_perm[mode])
+
+        p_path = mode_to_p[rep_stem]
+        if not p_path.exists():
+            continue
+
+        w_scatter = np.array([int(x) - 1 for x in str(row["Alignment"]).split()], dtype=int)
+        w_gather  = np.empty(K, dtype=int)
+        w_gather[w_scatter] = np.arange(K)
+
+        P_raw = np.loadtxt(p_path, dtype=float)
+        P_aligned = P_raw[:, w_gather][:, global_perm[mode]]
+
+        P_lists.setdefault(mode, []).append(P_aligned)
+        rep_names.setdefault(mode, []).append(rep_stem)
+
+    def _mode_sort_key(m):
+        k  = int(re.search(r"K(\d+)", m).group(1))
+        mi = int(re.search(r"M(\d+)", m).group(1))
+        return (k, mi)
+
+    modes_sorted      = sorted(P_lists, key=_mode_sort_key)
+    P_reps_by_mode    = {m: np.stack(P_lists[m], axis=0) for m in modes_sorted}
+    rep_names_by_mode = {m: rep_names[m] for m in modes_sorted}
+
+    return P_reps_by_mode, rep_names_by_mode, modes_sorted
+
+
 __all__ = [
     "load_mode_alignment",
     "load_mode_stats",
@@ -1527,4 +1577,7 @@ __all__ = [
     "load_gene_intervals",
     "filter_bed_by_peaks",
     "filter_gene_links_by_ccre",
+    "undo_clumppling_regroup",
+    "load_clumppling_replicate_Qs",
+    "load_clumppling_replicate_Ps",
 ]

@@ -1,9 +1,4 @@
-"""
-plot_comparison.py
-
-Multi-model comparison visualizations.
-
-"""
+"""Plots comparing modes and models."""
 
 from __future__ import annotations
 
@@ -55,34 +50,37 @@ def plot_compmodels_Q_grid(
     y_suptitle: float = 0.92,
 ):
     """
-    Plot membership on 2D coords (e.g. UMAP) for all modes in each model.
-
-    Layout: columns = models, rows = modes within each model.
+    Memberships on 2D coordinates for all modes, one column per model.
 
     Parameters
     ----------
-    comp_res : CompModelsResults
-        Loaded comparison results (from io.load_compmodels_results).
-    coords : array-like
-        (n_cells, 2) or (x, y) tuple; same individuals as in Q_by_mode.
-    models : list of str, optional
-        Subset of models to include; defaults to all in comp_res.models.
-    models_plot_order : list of str, optional
-        Order of columns; if None, uses `models`.
-    val_threshold : float
-        Membership threshold below which points are omitted for each cluster.
-    s : float
-        Marker size passed to plot_spatial_membership.
-    colors : Sequence
-        Sequence of colors used for clusters; default is tab20.
-    figsize_scale : (float, float)
-        Scale factors for figure size: (width_per_col, height_per_row).
-    suptitle : str, optional
-        Overall figure title.
-    y_suptitle : float
-        y position of suptitle.
+    comp_res
+        compModels results.
+    coords
+        Coordinates (n_cells, 2), or a tuple (x, y).
+    models
+        Models to include; None uses all.
+    models_plot_order
+        Column order; None uses models.
+    val_threshold
+        Plot only cells with membership above this value.
+    s
+        Marker size.
+    colors
+        Color per cluster; None uses tab20.
+    figsize_scale
+        (width, height) of each panel, in inches.
+    suptitle
+        Figure title.
+    y_suptitle
+        Vertical position of the title.
+
+    Returns
+    -------
+    fig
+    axes_by_model_mode
+        {(model, mode name): Axes}.
     """
-    # unpack coordinates
     if isinstance(coords, (list, tuple)) and len(coords) == 2:
         x, y = coords
     else:
@@ -113,7 +111,7 @@ def plot_compmodels_Q_grid(
 
     # choose a colormap for clusters
     if colors is None:
-        colors = cm.get_cmap("tab20").colors
+        colors = plt.get_cmap("tab20").colors
 
     axes_by_model_mode = {}
 
@@ -204,51 +202,37 @@ def plot_compmodels_Q_selected(
     y_suptitle: float = 0.92,
 ):
     """
-    Plot membership on 2D coords (e.g. UMAP) for a selected set of modes.
-
-    Layout: one panel per (model, mode) in model_mode_list.
-    Grid size can be specified by n_rows / n_cols; otherwise defaults to a single row.
+    Memberships on 2D coordinates for selected modes, one panel each.
 
     Parameters
     ----------
-    comp_res : CompModelsResults
-        Loaded comparison results (from io.load_compmodels_results).
-        Must have attributes:
-          - Q_by_mode : dict[full_mode_name -> ndarray (n_cells, K)]
-          - mode_stats_by_model : dict[model_name -> DataFrame]
-            with index 'Mode' (short_mode) and column 'Size'
-    coords : array-like
-        (n_cells, 2) or (x, y) tuple; same individuals as in Q_by_mode.
-    model_mode_list : sequence of (model_name, short_mode)
-        List of specific modes to plot, e.g.
-            [("rna.seurat.louvain", "K20M1"),
-             ("rna.seurat.louvain", "K20M2"),
-             ("rna.scanpy.leiden", "K18M1")]
-    n_rows : int, optional
-        Number of rows in the grid. If None and n_cols is None, uses 1 row.
-    n_cols : int, optional
-        Number of columns in the grid. If None and n_rows is None,
-        uses len(model_mode_list) columns (single row).
-    val_threshold : float
-        Membership threshold below which points are omitted for each cluster.
-    s : float
-        Marker size passed to plot_spatial_membership.
-    colors : Sequence, optional
-        Sequence of colors used for clusters; default is tab20.
-    figsize_scale : (float, float)
-        Scale factors for figure size: (width_per_col, height_per_row).
-    suptitle : str, optional
-        Overall figure title.
-    y_suptitle : float
-        y position of suptitle.
+    comp_res
+        compModels results.
+    coords
+        Coordinates (n_cells, 2), or a tuple (x, y).
+    model_mode_list
+        (model, mode name) pairs, e.g. [("scanpy.leiden", "K8M1")].
+    n_rows, n_cols
+        Grid shape; by default one row.
+    val_threshold
+        Plot only cells with membership above this value.
+    s
+        Marker size.
+    colors
+        Color per cluster; None uses tab20.
+    figsize_scale
+        (width, height) of each panel, in inches.
+    suptitle
+        Figure title.
+    y_suptitle
+        Vertical position of the title.
 
     Returns
     -------
-    fig, axes_by_model_mode
-        fig : matplotlib.figure.Figure
-        axes_by_model_mode : dict[(model_name, short_mode) -> Axes]
+    fig
+    axes_by_model_mode
+        {(model, mode name): Axes}.
     """
-    # ---- unpack coordinates ----
     if isinstance(coords, (list, tuple)) and len(coords) == 2:
         x, y = coords
         x, y = np.asarray(x), np.asarray(y)
@@ -270,7 +254,6 @@ def plot_compmodels_Q_selected(
     elif n_rows is not None and n_cols is None:
         n_cols = int(np.ceil(n_panels / n_rows))
 
-    # safety
     if n_rows <= 0 or n_cols <= 0:
         raise ValueError("n_rows and n_cols must be positive.")
 
@@ -283,12 +266,11 @@ def plot_compmodels_Q_selected(
 
     # ---- choose cluster colors ----
     if colors is None:
-        colors = cm.get_cmap("tab20").colors
+        colors = plt.get_cmap("tab20").colors
     colors = list(colors)
 
     axes_by_model_mode: Dict[Tuple[str, str], plt.Axes] = {}
 
-    # convenience: get stats one time
     stats_by_model = comp_res.mode_stats_by_model
 
     for idx, (model_name, short_mode) in enumerate(model_mode_list):
@@ -382,44 +364,47 @@ def plot_compmodels_diff_grid(
     strict_pair_mapping: bool = True
 ):
     """
-    Plot difference in membership on 2D coords for all modes across models.
+    Membership differences from a reference mode on 2D coordinates, for all modes, one column per model.
 
-    - Use map_alt_to_ref to compute aligned differences.
-    - For non-ref panels, plot a single overlaid diff scatter (per-cell).
-    - Compute Δ = fraction(per_cell_diff > diff_threshold)
+    The reference mode shows its memberships; every other mode shows cells whose difference is above diff_threshold. Titles give the overall difference (see `compute_membership_diff`).
 
     Parameters
     ----------
-    comp_res : CompModelsResults
-        Loaded comparison results (from io.load_compmodels_results).
-    pair_mappings : dict
-        Dict mapping "ref_mode-alt_mode" -> list of (ref_k, alt_k) tuples.
-    coords : array-like     
-        (n_cells, 2) or (x, y) tuple; same individuals as in Q_by_mode.
-    ref_mode : str
-        Full mode name (e.g. "model_shortmode") to use as reference.
-    models_plot_order : list of str, optional
-        Order of models (columns); if None, uses all models in comp_res.
-    val_threshold : float
-        Membership threshold below which points are omitted for each cluster.
-    diff_threshold : float
-        Threshold for difference in membership to consider significant.
-    colors : Sequence, optional
-        Sequence of colors used for clusters; default is tab20.
-    s : float
-        Marker size passed to plot_spatial_membership.   
-    alpha : float
-        Alpha value for scatter points. 
-    figsize_scale : (float, float)
-        Scale factors for figure size: (width_per_col, height_per_row).
-    suptitle : str, optional
-        Overall figure title.
-    y_suptitle : float
-        y position of suptitle.
-    strict_pair_mapping : bool
-        If True, raise an error if a required pair mapping is missing.
+    comp_res
+        compModels results.
+    pair_mappings
+        Output of `get_mode_pair_mappings`.
+    coords
+        Coordinates (n_cells, 2), or a tuple (x, y).
+    ref_mode
+        Full mode name of the reference mode.
+    models_plot_order
+        Column order; None uses all models.
+    val_threshold
+        Plot only cells with membership above this value.
+    diff_threshold
+        Plot only cells with a difference above this value.
+    colors
+        Color per cluster; None uses tab20.
+    s
+        Marker size.
+    alpha
+        Marker transparency.
+    figsize_scale
+        (width, height) of each panel, in inches.
+    suptitle
+        Figure title.
+    y_suptitle
+        Vertical position of the title.
+    strict_pair_mapping
+        Raise an error if a pair mapping is missing.
+
+    Returns
+    -------
+    fig
+    axes_by_model_mode
+        {(model, mode name): Axes}.
     """
-    # coords -> (x, y)
     if isinstance(coords, (list, tuple)) and len(coords) == 2:
         x, y = coords
         xy = (np.asarray(x), np.asarray(y))
@@ -428,7 +413,7 @@ def plot_compmodels_diff_grid(
         xy = (arr[:, 0], arr[:, 1])
 
     if colors is None:
-        colors = cm.get_cmap("tab20").colors
+        colors = plt.get_cmap("tab20").colors
 
     # get model->modes mapping 
     modes_by_model = getattr(comp_res, "modes_by_model", None)
@@ -482,7 +467,6 @@ def plot_compmodels_diff_grid(
         prefix = model + "_"
         return full_name[len(prefix):] if full_name.startswith(prefix) else full_name
 
-    # main plotting
     for i_model, model_name in enumerate(models_plot_order):
         mode_entries = list(modes_by_model[model_name])
 
@@ -539,7 +523,6 @@ def plot_compmodels_diff_grid(
                         overall_diff = np.zeros(n_cells, dtype=float)
                     else:
                         Q_mapped, diff_Q = map_alt_to_ref(ref_Q, Q, pair_mapping)
-                        # compute difference
                         overall_diff = compute_membership_diff(diff_Q)
 
                 else:
@@ -552,7 +535,6 @@ def plot_compmodels_diff_grid(
                         overall_diff = np.zeros(n_cells, dtype=float)
                     else:
                         ref_mapped, diff_Q = map_alt_to_ref(Q, ref_Q, pair_mapping)
-                        # compute difference
                         overall_diff = compute_membership_diff(diff_Q)
                         Q_mapped = Q
 
@@ -636,12 +618,49 @@ def plot_compmodels_diff_selected(
     strict_pair_mapping: bool = True,
 ):
     """
-    Plot difference in membership on 2D coords for a selected set of modes.
-    Layout: one panel per (model, mode) in model_mode_list.
-    Grid size can be specified by n_rows / n_cols; otherwise defaults to a single row.
-    Parameters follow same pattern as 'plot_compmodels_diff_grid'.
+    Membership differences from a reference mode on 2D coordinates, for selected modes.
+
+    Same as `plot_compmodels_diff_grid`, with one panel per (model, mode name) in model_mode_list.
+
+    Parameters
+    ----------
+    comp_res
+        compModels results.
+    pair_mappings
+        Output of `get_mode_pair_mappings`.
+    coords
+        Coordinates (n_cells, 2), or a tuple (x, y).
+    ref_mode
+        Full mode name of the reference mode.
+    model_mode_list
+        (model, mode name) pairs.
+    n_rows, n_cols
+        Grid shape; by default one row.
+    val_threshold
+        Plot only cells with membership above this value.
+    diff_threshold
+        Plot only cells with a difference above this value.
+    colors
+        Color per cluster; None uses tab20.
+    s
+        Marker size.
+    alpha
+        Marker transparency.
+    figsize_scale
+        (width, height) of each panel, in inches.
+    suptitle
+        Figure title.
+    y_suptitle
+        Vertical position of the title.
+    strict_pair_mapping
+        Raise an error if a pair mapping is missing.
+
+    Returns
+    -------
+    fig
+    axes_by_model_mode
+        {(model, mode name): Axes}.
     """
-    # coords -> (x, y)
     if isinstance(coords, (list, tuple)) and len(coords) == 2:
         x, y = coords
         xy = (np.asarray(x), np.asarray(y))
@@ -650,7 +669,7 @@ def plot_compmodels_diff_selected(
         xy = (arr[:, 0], arr[:, 1])
 
     if colors is None:
-        colors = cm.get_cmap("tab20").colors
+        colors = plt.get_cmap("tab20").colors
     colors = list(colors)
 
     modes_by_model = getattr(comp_res, "modes_by_model", None)
@@ -874,55 +893,40 @@ def plot_model_diff_summary(
     suptitle=None,
 ):
     """
-    For each model, plot:
-      - Top row: major mode clustering (largest Size) on 2D coords,
-                 colored by discrete cluster labels using `colors`,
-                 analogous to `plot_compmodels_Q_grid`.
-      - Bottom row: per-cell weighted average difference vs reference,
-                    aggregated across modes and weighted by mode size.
+    Per model, the major mode (top) and the mean difference per cell from the reference, weighted by mode size (bottom).
 
     Parameters
     ----------
     comp_res
-        Object containing compModels results. Must have:
-          - modes_by_model : Dict[str, List[str]]   (short mode names, e.g. "K20M1")
-          - mode_stats_by_model : Dict[str, DataFrame] with columns ['Mode', 'Size']
-          - get_Q(full_mode_name) -> np.ndarray (n_cells x K)
-    mat_diffs : dict
-        Nested dict of diff matrices, typically from
-        get_diff_matrices:
-          `mat_diffs[model_name][short_mode] = diff_Q`
-        where diff_Q has shape (n_cells, K_eff).
-    coords : array-like or (x, y)
-        2D coordinates per cell. Either:
-          - array of shape (n_cells, 2), or
-          - tuple/list (x, y) of 1D arrays.
-    models_plot_order : sequence of str, optional
-        Order of models (columns). Defaults to list(mat_diffs.keys()).
-    colors : sequence, optional
-        Sequence of discrete colors used for clusters in the TOP row,
-        same semantics as in plot_compmodels_Q_grid.
-        If None, defaults to tab20 colors.
-    figsize_scale : (float, float), default (2.5, 2.5)
-        (width_per_model, height_per_row) used to derive overall figure size.
-    diff_cmap : str, default "RdPu"
-        Colormap for the weighted difference panel (bottom row).
-    diff_vmin, diff_vmax : float
-        vmin/vmax for the difference colormap.
-    point_size : float
-        Scatter point size.
-    alpha : float
-        Scatter alpha.
-    suptitle : str or None
-        Optional figure-level title.
+        compModels results.
+    mat_diffs
+        Output of `get_diff_matrices`.
+    coords
+        Coordinates (n_cells, 2), or a tuple (x, y).
+    models_plot_order
+        Column order; None uses the keys of mat_diffs.
+    colors
+        Color per cluster; None uses tab20.
+    figsize_scale
+        (width, height) of each panel, in inches.
+    diff_cmap
+        Colormap of the differences.
+    diff_vmin, diff_vmax
+        Range of the difference color scale.
+    point_size
+        Marker size.
+    alpha
+        Marker transparency.
+    suptitle
+        Figure title.
 
     Returns
     -------
-    fig, axes
-        Matplotlib Figure and Axes array of shape (2, n_models).
+    fig
+    axes
+        Array (2, n_models).
     """
 
-    # coords -> (x, y) 
     if isinstance(coords, (list, tuple)) and len(coords) == 2:
         x, y = np.asarray(coords[0]), np.asarray(coords[1])
     else:
@@ -931,7 +935,6 @@ def plot_model_diff_summary(
             raise ValueError("coords must be (n_cells, 2) or (x, y).")
         x, y = arr[:, 0], arr[:, 1]
 
-    # models
     if models_plot_order is None:
         models_plot_order = list(mat_diffs.keys())
 
@@ -939,10 +942,9 @@ def plot_model_diff_summary(
     if n_models == 0:
         raise ValueError("No models to plot.")
 
-    # figure / axes 
     width_per_model, height_per_row = figsize_scale
     fig_width = width_per_model * n_models
-    fig_height = height_per_row * 2  # 2 rows
+    fig_height = height_per_row * 2
     fig, axes = plt.subplots(
         2,
         n_models,
@@ -955,7 +957,7 @@ def plot_model_diff_summary(
 
     # colors for TOP row clusters (like plot_compmodels_Q_grid) 
     if colors is None:
-        colors = cm.get_cmap("tab20").colors
+        colors = plt.get_cmap("tab20").colors
     colors = np.array(list(colors))
     n_colors = len(colors)
 
@@ -976,7 +978,7 @@ def plot_model_diff_summary(
             )
         size_lookup[model] = stats_df.set_index("Mode")["Size"]
 
-    # We'll keep a handle to the last diff scatter for the colorbar
+    # last diff scatter, used for the colorbar
     last_scatter = None
 
     for j, model_name in enumerate(models_plot_order):
@@ -1079,9 +1081,7 @@ def plot_model_diff_summary(
 
 
 def _parse_short_mode_km(short_mode: str) -> Tuple[int, int]:
-    """
-    Parse 'K14M2' -> (14, 2). Fallback returns (-1, -1) if not matched.
-    """
+    """Parse "K14M2" into (14, 2); (-1, -1) if it does not match."""
     m = re.match(r"K(\d+)M(\d+)", short_mode)
     if not m:
         return -1, -1
@@ -1094,10 +1094,7 @@ def _build_K_grouped_full_names(
     full_mode_names: Sequence[str],
     models_plot_order: Optional[Sequence[str]] = None,
 ) -> List[str]:
-    """
-    Reconstruct compModels-style order:
-    group by K, sort K asc, then sort within K by model order, then by M.
-    """
+    """Order full mode names as compModels does: by K, then model order, then mode index."""
     # group full names by K
     by_K: Dict[int, List[str]] = defaultdict(list)
     unknown: List[str] = []
@@ -1142,17 +1139,29 @@ def plot_compmodels_alignment_list(
     figsize: Tuple[float, float] = (6, 6),
 ):
     """
-    CompModels alignment pattern list using clumppling.plot_alignment_list,
-    but with correct K-grouped ordering to avoid KeyError.
+    Alignment list of all modes of all models (Clumppling's `plot_alignment_list`).
 
-    Requires comp_res to have:
-      - full_mode_names
-      - alignment_across_all
-      - all_modes_alignment
-      - get_Q(full_mode_name)
+    Parameters
+    ----------
+    comp_res
+        compModels results.
+    cmap
+        Colormap or list of colors; None uses tab20.
+    marker_size
+        Marker size.
+    figsize
+        Figure size.
+
+    Returns
+    -------
+    fig
+    Q_names_reordered
+        Full mode names, in plot order.
+    mode_K
+        K of each mode, in plot order.
     """
     if cmap is None:
-        cmap = cm.get_cmap("tab20")
+        cmap = plt.get_cmap("tab20")
 
     # Build correct order (K-grouped, like separate_Qs_by_K)
     Q_names_reordered = _build_K_grouped_full_names(
@@ -1163,7 +1172,6 @@ def plot_compmodels_alignment_list(
     Q_aligned_list = [comp_res.get_Q(name) for name in Q_names_reordered]
     mode_K = [Q.shape[1] for Q in Q_aligned_list]
 
-    # Plot
     fig = plot_alignment_list(
         mode_K,
         Q_names_reordered,
@@ -1181,9 +1189,7 @@ def plot_compmodels_alignment_list(
 
 
 def _split_full_mode(full_name: str) -> Tuple[str, str]:
-    """
-    Split a full mode name 'model_KxMy' into (model, 'KxMy').
-    """
+    """Split a full mode name "model_K3M1" into ("model", "K3M1")."""
     parts = full_name.split("_", 1)
     if len(parts) != 2:
         raise ValueError(f"Cannot split full mode name '{full_name}' into model/mode")
@@ -1210,81 +1216,51 @@ def plot_compmodels_alignment_by_model(
     pair_mappings: Optional[Dict[str, Sequence[Tuple[int, int]]]] = None,
 ):
     """
-    Plot alignment between multiple models in a single graph.
+    Alignment graph of several models, one column per model.
 
-    Modes can be arranged in rows either by:
-      - mode index within each model (row_by_K=False), or
-      - grouped by K across models (row_by_K=True), so that modes with the
-        same K value line up on the same row "band" across models.
-
-    When row_by_K=True:
-      - For each K, determine the maximum number of modes with that K across
-        all selected models.
-      - Allocate that many rows for that K.
-      - If a model has fewer modes for that K, the corresponding slots are left
-        empty (no markers drawn).
+    Each mode is a row of cluster markers; lines join aligned clusters between models (and between modes of the same model, if pair_mappings is given).
 
     Parameters
     ----------
-    comp_res : CompModelsResults
-        Must provide:
-          - models
-          - modes_by_model: dict[model -> list[str]]  (short mode names)
-          - full_mode_names: list[str]                (e.g. "rna.seurat.K21M1")
-          - all_modes_alignment: dict[full_mode_name -> list[int]]
-          - alignment_across_all: dict["A-B" -> mapping list[int]]
-          - K_max: int
-          - get_Q(full_mode_name) or Q_by_mode[full_mode_name]
+    comp_res
+        compModels results.
     cmap
-        Either:
-          - a matplotlib colormap (e.g. cm.get_cmap("tab20"))
-          - a sequence of RGB tuples
-          - None (defaults to tab20).
-    models : sequence of str, optional
-        Subset of models to include. Defaults to all comp_res.models.
-    models_plot_order : sequence of str, optional
-        Order of columns. Defaults to `models`.
-    row_by_K : bool
-        If True, modes are grouped by K across models; only modes with the same
-        K appear in the same row band. If False, rows are mode index per model.
-    wspace_padding : float
-        Horizontal spacing factor between model columns, scaled by K_max.
-    marker_size : float
-        Size of the cluster markers.
-    alt_ls : bool
-        If True, use `ls_alt` to style edges for better visibility.
-    ls_alt : sequence of str
-        Line styles; ls_alt[0] used for non-identity edges,
-        ls_alt[1] used for identity edges (if connect_identity=True).
-    lw : float
-        Line width for edges.
-    connect_identity : bool
-        If True, also draw thin light-grey (or ls_alt[1]) lines for identity
-        mappings (same aligned column index). If False, only draw non-identity.
-    adjacent_only : bool
-        If True, draw edges only between modes in *adjacent model columns*
-        (to reduce clutter). If False, draw edges between any model pair.
-    label_modes : bool
-        If True, write mode labels near each block; column headers = models.
-    figsize_scale : (float, float)
-        Scale factors for figure size: (width_per_K, height_per_row).
-        Width = n_models * K_max * width_per_K
-        Height = n_rows * height_per_row
-    dpi : int
-        Figure dpi.
-    pair_mappings : dict, optional
-        Optional within-model pair mappings ("A-B" -> list[(col_idx_A, col_idx_B)])
-        to draw extra edges between successive modes of the same model.
+        Colormap or list of colors; None uses tab20.
+    models
+        Models to include; None uses all.
+    models_plot_order
+        Column order; None uses models.
+    row_by_K
+        Put modes with the same K in the same row across models; otherwise rows follow the mode order of each model.
+    wspace_padding
+        Space between model columns, in units of K_max.
+    marker_size
+        Marker size.
+    alt_ls
+        Use ls_alt line styles.
+    ls_alt
+        Line styles of changed and unchanged cluster mappings.
+    lw
+        Line width.
+    connect_identity
+        Also draw unchanged cluster mappings.
+    adjacent_only
+        Draw lines only between adjacent model columns.
+    label_modes
+        Label each mode.
+    figsize_scale
+        (width per cluster, height per row), in inches.
+    dpi
+        Figure resolution.
+    pair_mappings
+        Output of `get_mode_pair_mappings`, to join modes within each model.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-        The figure object.
-    ax : matplotlib.axes.Axes
-        The axes.
+    fig, ax
     """
     if cmap is None:
-        cmap = cm.get_cmap("tab20").colors
+        cmap = plt.get_cmap("tab20").colors
 
     # --- select models ---
     if models is None:
@@ -1352,7 +1328,7 @@ def plot_compmodels_alignment_by_model(
         row_meta = row_meta_list
 
     else:
-        # Original behavior: rows are just mode index within model
+        # rows are just mode index within model
         n_row = max(len(modes_by_model[m]) for m in models_plot_order)
         for col, model in enumerate(models_plot_order):
             short_modes = modes_by_model.get(model, [])
@@ -1367,7 +1343,6 @@ def plot_compmodels_alignment_by_model(
         for row in range(n_row):
             start_positions[row, col] = col * x_step
 
-    # figure creation 
     width = max(1.0, n_col * K_max * figsize_scale[0])
     height = max(1.0, n_row * figsize_scale[1])
     fig, ax = plt.subplots(
@@ -1616,32 +1591,30 @@ def plot_discrete_colorbar(
     facecolor: str = "white",
 ):
     """
-    Plot a simple discrete colorbar-like strip for cluster colors.
+    Strip of cluster colors.
 
     Parameters
     ----------
     colors
-        A sequence of color specs. Can be:
-        - list of RGB tuples (0-1 range)
-        - hex strings
-        - named matplotlib colors
+        Color per cluster.
     K_max
-        Number of clusters. If None, inferred as len(colors).
+        Number of clusters; None uses len(colors).
     labels
-        X tick labels. If None, defaults to ["Cls.1", ..., "Cls.K"].
+        Tick labels; None uses "Cls.1", "Cls.2", ...
     ax
-        Existing axes to draw on. If None, a new figure/axes is created.
+        Axes to draw on; None creates a figure.
     figsize
-        Figure size (only used if ax is None). Default scales with K.
+        Figure size; None scales with K.
     dpi
-        Figure dpi (only used if ax is None).
+        Figure resolution.
     facecolor
-        Figure/axes facecolor.
+        Background color.
 
     Returns
     -------
-    fig, ax, im
-        im is the AxesImage returned by imshow.
+    fig, ax
+    im
+        The image.
     """
     if K_max is None:
         K_max = len(colors)
@@ -1699,27 +1672,7 @@ def _add_hlines_when_model_switches(
     model_from_mode: Optional[Callable[[str], str]] = None,
     line_kwargs: Optional[dict] = None,
 ) -> List[int]:
-    """
-    Add horizontal separator lines between heatmap rows whenever the
-    'model' prefix switches.
-
-    Parameters
-    ----------
-    ax
-        The heatmap axis.
-    mode_index
-        The row index used in the heatmap (e.g., df.index).
-    model_from_mode
-        Function to extract model name from a mode string.
-        Default assumes "model_shortmode" and takes the part before first "_".
-    line_kwargs
-        Passed to ax.axhline (e.g. dict(color="black", linewidth=1.2, alpha=0.8)).
-
-    Returns
-    -------
-    boundaries
-        List of row indices where a line was drawn (y positions).
-    """
+    """Draw a line between heatmap rows wherever the model prefix changes; returns the row positions."""
     if model_from_mode is None:
         model_from_mode = lambda s: str(s).split("_", 1)[0]
 
@@ -1776,30 +1729,62 @@ def plot_group_diff(
     model_sep_kwargs: Optional[dict] = None,
 ):
     """
-    Plot a heatmap of mode-by-annotation-group differences.
-    Optionally add marginal bar plots:
-      - Top: annotation group sizes
-      - Left: mode sizes
+    Heatmap of membership differences by mode (rows) and annotation group (columns), with optional bars of group sizes (top) and mode sizes (left).
 
     Parameters
     ----------
     df_mode_group_diff
-        DataFrame with index=modes and columns=annotation groups.
+        Differences, modes by annotation groups (e.g. from `build_diff_df`).
     mode_sizes
-        Series of mode sizes indexed by FULL mode names.
-        Required if show_left=True.
+        Mode sizes indexed by full mode name (e.g. from `get_mode_sizes`); needed if show_left.
     annotation_group_sizes
-        Series of group sizes indexed by group names.
-        Required if show_top=True.
+        Group sizes (e.g. from `compute_group_sizes`); needed if show_top.
     ref_mode
-        If provided, highlights this row label in red/bold.
+        Reference mode, highlighted in the row labels.
     show_top, show_left
-        Toggle marginal bars.
+        Show the group size and mode size bars.
+    annot
+        Cell labels; None shows values at or above zero_label_eps.
+    cmap
+        Colormap.
+    cbar_label
+        Colorbar label.
+    top_ylabel, left_xlabel
+        Labels of the size bars.
+    x_label, y_label
+        Heatmap axis labels.
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    height_ratios, width_ratios
+        Relative sizes of the bars and the heatmap.
+    wspace, hspace
+        Space between panels.
+    vmin, vmax
+        Range of the color scale.
+    cbar_fraction
+        Colorbar size, as a fraction of the heatmap.
+    xtick_rotation, xtick_fontsize, ytick_fontsize, label_fontsize
+        Tick and label formatting.
+    border_width, border_color
+        Heatmap cell borders.
+    zero_label_eps
+        Values below this are not labeled.
+    top_round_to
+        Round the group size axis limit up to a multiple of this.
+    show_mode_size_labels
+        Label the mode size bars.
+    add_model_separators
+        Draw lines between models.
+    model_sep_kwargs
+        Passed to `ax.axhline` for the model lines.
 
     Returns
     -------
-    fig, axes
-        axes is a dict with keys: "heatmap", "top", "left"
+    fig
+    axes
+        {"heatmap", "top", "left": Axes}.
     """
     if df_mode_group_diff is None or df_mode_group_diff.empty:
         raise ValueError("df_mode_group_diff is empty.")
@@ -1939,7 +1924,6 @@ def plot_group_diff(
     ax_hm.set_xlabel(x_label)
     ax_hm.set_ylabel(y_label)
 
-    # Fix tick-setting (matplotlib-safe)
     ax_hm.set_xticks(np.arange(len(df_mode_group_diff.columns)) + 0.5)
     ax_hm.set_xticklabels(
         df_mode_group_diff.columns,
@@ -1988,10 +1972,7 @@ def _add_mapping_connection_lines(
     lw=0.8,
     zorder=1,
 ):
-    """
-    Draw lines from the *bottom* of axes in src_row to the *top* of axes in dst_row
-    using pair_mapping = [(i_small, j_large), ...].
-    """
+    """Draw lines between the panels of two rows for each (cluster, cluster) pair in pair_mapping."""
     if not pair_mapping:
         return
 
@@ -2042,29 +2023,50 @@ def plot_mapping_grid(
     s: float = 0.5,
     figsize_scale: Tuple[float, float] = (2.0, 2.0),
     strict_pair_mapping: bool = True,
-    # --- new, optional connection-line controls ---
+    # --- connection-line controls ---
     connect_lines: bool = True,
     connect_color: str = "k",
     connect_alpha: float = 0.25,
     connect_lw: float = 0.8,
 ):
     """
-    Plot reference/alt Qs, mapped alt, and per-column abs differences.
+    Memberships of a reference and an alternative mode on 2D coordinates, showing how their clusters map.
 
-    Row order (when included):
-        0) reference (the *smaller-K* space used for mapping)
-        1) mapped alt (larger-K mapped into smaller-K space)
-        2) original alt (the larger-K Q)
-        3) diff (abs(reference - mapped_alt))
+    The first row is the mode with the smaller K. The show argument adds rows of the other mode as is ("alt"), mapped onto the first ("mapped_alt"), and the absolute differences ("diff").
 
-    The `show` argument controls which of:
-        {"alt", "mapped_alt", "diff"}
-    are added in addition to the reference row.
+    Parameters
+    ----------
+    ref_Q
+        Q matrix of the reference mode.
+    alt_Q
+        Q matrix of the alternative mode.
+    pair_mappings
+        Output of `get_mode_pair_mappings`.
+    ref_mode, alt_mode
+        Mode names.
+    coords
+        Coordinates (n_cells, 2), or a tuple (x, y).
+    colors
+        Color per cluster.
+    show
+        Rows to add: any of "alt", "mapped_alt" and "diff".
+    dpi
+        Figure resolution.
+    s
+        Marker size.
+    figsize_scale
+        (width, height) of each panel, in inches.
+    strict_pair_mapping
+        Raise an error if the pair mapping is missing.
+    connect_lines
+        Draw lines between mapped clusters.
+    connect_color, connect_alpha, connect_lw
+        Line color, transparency and width.
 
-    Default:
-        show=("alt",)   -> reference + original alt
+    Returns
+    -------
+    fig, axes
     """
-    # ---- coords -> (x, y) ----
     if isinstance(coords, (list, tuple)) and len(coords) == 2:
         x, y = coords
         xy = (np.asarray(x), np.asarray(y))
@@ -2168,7 +2170,6 @@ def plot_mapping_grid(
             ax = fig.add_subplot(gs[r, k])
             ax.axis("off")
 
-    # Optional semantic reminder
     if not small_is_ref:
         fig.suptitle(
             "Note: alt has smaller K; alignment shown in alt space",
@@ -2179,7 +2180,7 @@ def plot_mapping_grid(
     # Finalize layout BEFORE reading axis positions for connections
     fig.tight_layout()
 
-    # ---- add connection lines between rows (as requested) ----
+    # ---- connection lines between rows ----
     # Conditions:
     #   - Only if orig row exists
     #   - Use aligned->orig if aligned shown, else ref->orig
@@ -2224,20 +2225,30 @@ def plot_mapping_alignment(
     title: Optional[str] = None,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plot a simple two-row pair-mapping alignment diagram.
+    Diagram of the cluster mapping between two modes, one row each.
 
     Parameters
     ----------
     pair_mapping
-        Sequence of (c_ref, c_alt) index pairs. Assumes ref row at y=1, alt row at y=0.
+        (reference cluster, alternative cluster) pairs.
     ref_K, alt_K
-        Number of clusters in ref/alt spaces for x-limit.
+        Number of clusters of each mode.
     ref_mode, alt_mode
-        Labels for y-axis and title.
+        Mode names.
     colors
-        Colors indexed by cluster id. Can be a list/tuple or dict.
+        Color per cluster (list or dict).
+    figsize
+        Figure size.
+    dpi
+        Figure resolution.
+    node_size, node_edgecolor, node_linewidth
+        Marker size and edge.
+    line_color, line_alpha, line_lw
+        Line color, transparency and width.
     ax
-        If provided, draws into existing axis.
+        Axes to draw on; None creates a figure.
+    title
+        Title.
 
     Returns
     -------
@@ -2288,9 +2299,7 @@ def plot_mapping_alignment(
 
 
 def strip_leading_zero(x, decimals=2):
-    """
-    Format a float to a string with given decimals, stripping leading zero.
-    """
+    """Format a number with the given decimals, without the leading zero (0.25 -> ".25")."""
     if pd.isna(x):
         return ""
     s = f"{x:.{decimals}f}"
@@ -2325,39 +2334,40 @@ def plot_model_diff_heatmap(
     show: bool = False,
 ) -> Tuple[plt.Figure, plt.Axes, pd.DataFrame]:
     """
-    Plot a cross-model overall membership difference heatmap.
+    Heatmap of overall membership differences between the modes of two models.
 
     Parameters
     ----------
     cross_model_overall_membership_diff
-        Dict-like or pd.Series with keys as (mode_name_model0, mode_name_model1)
-        and values in [0, 1].
+        {(mode of model 1, mode of model 2): difference}, as a dict or Series.
     comp_res
-        An object that contains:
-        comp_res.full_mode_names_by_model[model_name] -> ordered list of full mode names.
-        This ordering is used to reindex rows/cols (no lexical sorting issues like K10 vs K3).
+        compModels results, used to order the modes.
     models
-        Sequence of two model names in the same order used in the diff keys.
-    figsize, dpi, cmap, annot, vmin, vmax, linewidths, linecolor
-        Seaborn/Matplotlib styling options.
+        The two model names, in the order of the keys.
+    figsize, dpi, cmap, vmin, vmax, linewidths, linecolor
+        Figure and heatmap formatting.
+    decimals
+        Number of decimals in the cell labels; negative hides them.
+    annot_size
+        Font size of the cell labels.
     ax
-        If provided, plot into this axis. Otherwise create a new figure/axis.
+        Axes to draw on; None creates a figure.
     cbar
-        Whether to show colorbar.
+        Add a colorbar.
     tight_layout
-        Whether to call plt.tight_layout().
+        Call `plt.tight_layout`.
     show
-        If True, calls plt.show().
+        Call `plt.show`.
 
     Returns
     -------
-    fig, ax, mat
-        The figure, axis, and the reindexed matrix used for the heatmap.
+    fig, ax
+    mat
+        The plotted matrix.
     """
     if len(models) != 2:
         raise ValueError(f"`models` must have length 2, got {len(models)}.")
 
-    # Build Series
     if isinstance(cross_model_overall_membership_diff, pd.Series):
         df_cross_model_diff = cross_model_overall_membership_diff.copy()
     else:
@@ -2383,7 +2393,6 @@ def plot_model_diff_heatmap(
 
     mat = mat.reindex(index=row_order, columns=col_order)
 
-    # Create fig/ax if needed
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     else:
@@ -2405,7 +2414,6 @@ def plot_model_diff_heatmap(
         annot_kws={"fontsize": annot_size},
     )
 
-    # Optional labels/title (safe defaults)
     ax.set_xlabel(models[1])
     ax.set_ylabel(models[0])
 
@@ -2431,33 +2439,26 @@ def plot_avg_membership_barh(
     dpi: int = 150,
 ) -> Tuple[plt.Figure, list[plt.Axes]]:
     """
-    Generalized horizontal grouped bar charts comparing cluster memberships
-    across multiple models.
+    Mean cluster membership per annotation group, one panel per cluster, one bar per model.
 
     Parameters
     ----------
     avg_cls_memberships
-        Dict of {model_name: df}.
-        Each df: rows = annotation groups, columns = clusters,
-        plus an `annot_col` column.
-        Example: {"rna": df_rna, "atac": df_atac, "multiome": df_mo}
+        Output of `compute_avg_memberships`.
     annot_col
-        Column name for annotation groups.
+        Annotation column.
     model_order
-        Order of modalities in the legend/hue. If None, uses dict insertion order.
+        Order of the models; None keeps the dict order.
     cluster_order
-        Optional explicit order for clusters (subset will be used).
+        Order of the clusters.
     cluster_mode
-        How to determine clusters across models:
-        - "intersection": use only clusters present in all models
-        - "union": use all clusters across models
-        - "auto": use intersection if non-empty else union
+        Clusters to show: "intersection", "union", or "auto" (intersection if not empty).
     colors
-        Optional colors used for cluster title text (per cluster index).
+        Color of each cluster title.
     figsize_per_cluster
-        (width_per_cluster, height) for 1 x K layout.
+        (width, height) of each panel, in inches.
     dpi
-        Figure DPI.
+        Figure resolution.
 
     Returns
     -------
@@ -2584,38 +2585,34 @@ def plot_feature_count(
     ax=None,
 ):
     """
-    Plot a single gene's expression over 2D coordinates.
+    Values of one feature on 2D coordinates.
 
     Parameters
     ----------
-    feature_counts : array-like or sparse
-        Per-cell values for one feature. Shape (n_cells,) or (n_cells, 1).
-        If sparse, will be densified.
-    coords : np.ndarray
-        2D coordinates of shape (n_cells, 2).
-    feature_name : str or None
-        Title annotation.
-    log_transformed : bool
-        If False, apply log1p to feature_counts.
-        If True, assume feature_counts already on log scale.
-    vmax : float or None
-        Color max. If None or 0, inferred from data.
-    vmin : float or None
-        Color min. If None, inferred by matplotlib.
-    size : float
-        Point size.
-    cmap : str
-        Colormap name.
-    cbar_loc : {"bottom", "top", "left", "right"}
-        Colorbar location.
-    cbar_label : str or None
-        Overrides default colorbar label.
-    ax : matplotlib.axes.Axes or None
-        Existing axis to draw on.
+    feature_counts
+        Value per cell (dense or sparse).
+    coords
+        Coordinates (n_cells, 2).
+    feature_name
+        Title.
+    log_transformed
+        Whether the values are already log-transformed; otherwise log1p is applied.
+    vmax, vmin
+        Range of the color scale; vmax None or 0 uses the data.
+    size
+        Marker size.
+    cmap
+        Colormap.
+    cbar_loc
+        Colorbar position: "bottom", "top", "left" or "right".
+    cbar_label
+        Colorbar label.
+    ax
+        Axes to draw on; None creates a figure.
 
     Returns
     -------
-    matplotlib.figure.Figure
+    fig
     """
     # coords validation 
     coords = np.asarray(coords)
@@ -2631,7 +2628,6 @@ def plot_feature_count(
     # log handling
     feature_vals = feature_counts if log_transformed else np.log1p(feature_counts)
 
-    # axis
     if ax is None:
         fig, ax = plt.subplots(figsize=(4, 5), dpi=150)
 
@@ -2641,7 +2637,6 @@ def plot_feature_count(
     if vmax is None or vmax == 0:
         vmax = float(np.nanmax(feature_vals)) if feature_vals.size else 0.0
 
-    # scatter
     sp_sc = ax.scatter(
         coords[:, 0],
         coords[:, 1],
@@ -2656,7 +2651,6 @@ def plot_feature_count(
     ax.tick_params(axis="y", which="both", left=False, right=False, labelleft=False)
     ax.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
 
-    # colorbar
     if cbar_loc not in {"bottom", "top", "left", "right"}:
         raise ValueError("cbar_loc must be one of: bottom, top, left, right.")
 
@@ -2681,19 +2675,22 @@ def plot_feature_count(
 
 def plot_membership_reordered(P,cmap,lbs,ax,title="",annot=""):
     """
-    Plot membership with reordered cluster indices.
-    P : np.ndarray, shape (n_samples, n_clusters)
-        Membership matrix.
-    cmap : list of colors
-        Colors for each cluster.
-    lbs : array-like, shape (n_samples,)
-        Labels for each sample (used to group samples).
-    ax : matplotlib.axes.Axes
-        Axis to plot on.
-    title : str
-        Y-axis label.
-    annot : str
-        Annotation text (shown at top-right).
+    Structure plot of a Q matrix, with clusters ordered by size and cells sorted within each label group.
+
+    Parameters
+    ----------
+    P
+        Q matrix (n_cells, K).
+    cmap
+        Color per cluster.
+    lbs
+        Label per cell.
+    ax
+        Axes to draw on.
+    title
+        y-axis label.
+    annot
+        Text at the top right.
     """
 
     N = P.shape[0]
@@ -2745,27 +2742,36 @@ def plot_structure_two_level(
     dpi: int = 150,
 ) -> plt.Figure:
     """
-    Two-level group version of plot_structure_modes.
-
-    - Pulls Q matrices from `results.Q_by_mode`.
-    - Computes grp_info inside using get_uniq_lb_sep.
-    - Works for any two-level labels (grp + optional supgrp).
-    - Optionally reorders samples by (supgrp, grp).
+    Structure plots of several modes, with cells grouped by two levels of labels.
 
     Parameters
     ----------
     results
-        ClumpplingResults.
+        Clumppling results.
     modes
-        Which modes to plot. If None, uses `results.modes`.
+        Mode names; None uses all.
     cmap
-        Colormap list passed to plot_membership.
+        Color per cluster.
     grp_labels
-        Lower-level labels per sample (length n_cells).
+        Label per cell (lower level).
     supgrp_labels
-        Higher-level labels per sample (length n_cells), optional.
+        Label per cell (upper level), or None.
+    mode_labels
+        Row labels; None uses the mode names.
+    reorder_clsind
+        Use `plot_membership_reordered`.
     grp_seps_ymin, supgrp_seps_ymin
-        How far separator lines extend below axis.
+        How far the group separator lines extend below each plot.
+    lb_suffix_sep
+        Show only the part of each label after this separator.
+    figsize
+        Figure size; None scales with the number of modes.
+    dpi
+        Figure resolution.
+
+    Returns
+    -------
+    fig
     """
     if modes is None:
         modes = results.modes
@@ -2815,12 +2821,10 @@ def plot_structure_two_level(
 
         Q = results.Q_by_mode[mode]
 
-        # assumed signature:
         if reorder_clsind:
             plot_membership_reordered(Q, cmap, grp_labels, ax, "", annot="")
         else:
             plot_membership(Q, cmap, ax=ax, ylab="", title="", fontsize=14)
-        # plot_membership(Q, cmap, ax=ax, ylab="", title="")
 
         ax.set_ylabel(str(mode_labels[i_m]), fontsize=12)
         ax.tick_params(axis="y", left=False, right=False, labelleft=False)
@@ -2879,43 +2883,36 @@ def plot_structure_one_level(
     x_ha="center",
 ) -> plt.Figure:
     """
-    One-level group version of plot_structure_modes.
-
-    - Pulls Q matrices from `results.Q_by_mode`.
-    - Computes grp_info inside using get_uniq_lb_sep.
-    - Works for any single-level labels (e.g., sample group / batch / cell type).
-    - Optionally reorders samples by grp_labels via plot_membership_reordered.
+    Structure plots of several modes, with cells grouped by one level of labels.
 
     Parameters
     ----------
     results
-        ClumpplingResults-like object with attributes:
-          - Q_by_mode : dict[mode_name -> (n_cells, K) array]
-          - modes     : sequence of mode names (if modes is None)
+        Clumppling results.
     modes
-        Which modes to plot. If None, uses `results.modes`.
+        Mode names; None uses all.
     cmap
-        Colormap list passed to plot_membership / plot_membership_reordered.
+        Color per cluster.
     grp_labels
-        Group labels per sample (length n_cells).
+        Label per cell.
     mode_labels
-        Labels for each mode row (defaults to `modes` if None or wrong length).
+        Row labels; None uses the mode names.
     reorder_clsind
-        If True, use plot_membership_reordered(Q, cmap, grp_labels, ...);
-        otherwise use plot_membership(Q, cmap, ...).
+        Use `plot_membership_reordered`.
     grp_seps_ymin
-        How far separator lines extend below axis (in axis fraction).
+        How far the group separator lines extend below each plot.
     lb_suffix_sep
-        Optional separator; if provided, only the suffix (after lb_suffix_sep)
-        is used in x tick labels.
+        Show only the part of each label after this separator.
     figsize
-        Figure size (width, height). If None, chosen based on number of modes.
+        Figure size; None scales with the number of modes.
     dpi
-        Figure DPI.
+        Figure resolution.
+    x_rot, x_ha
+        Rotation and alignment of the group labels.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
+    fig
     """
     if modes is None:
         modes = results.modes
@@ -2942,7 +2939,6 @@ def plot_structure_one_level(
         "grp_seps_ymin": grp_seps_ymin,
     }
 
-    # figure
     if figsize is None:
         figsize = (9, max(1.0, 1.0 * len(modes)))
 
@@ -2985,17 +2981,7 @@ def plot_structure_one_level(
 
 
 def _plot_single_membership_reordered(ax, membership, lbs, color):
-    """
-    Plot single membership vector with reordered cluster indices.
-    membership : np.ndarray, shape (n_samples,)
-        Membership vector.
-    lbs : array-like, shape (n_samples,)
-        Labels for each sample (used to group samples).
-    ax : matplotlib.axes.Axes
-        Axis to plot on.
-    color : str
-        Color for the bars.
-    """
+    """Bar plot of one cluster's memberships, with cells sorted within each label group."""
 
     N = len(membership)
     for lb in np.unique(lbs):
@@ -3024,7 +3010,6 @@ def plot_spatial_structure_grid(
     cmap: Optional[Any] = None,
     mode_labels: Optional[Sequence[str]] = None,
     grp_seps: Optional[Sequence[float]] = None,
-    reorder_cls: bool = True,
     s: float = 1.0,
     alpha: float = 1.0,
     vmin: float = 0.0,
@@ -3033,23 +3018,38 @@ def plot_spatial_structure_grid(
     dpi: int = 150,
 ) -> plt.Figure:
     """
-    Optimized spatial + structure membership grid.
+    For each mode, the structure plot and each cluster's membership on 2D coordinates.
 
     Parameters
     ----------
-    results : ClumpplingResults
-    coords : (n_cells, 2)
-    grps : per-cell group labels for ordering the 1D trace
-    modes : optional subset of modes (defaults to results.modes)
-    cmap :
-        - None -> auto tab20 colors
-        - list/tuple of colors length >= K_max
-        - matplotlib colormap callable
-    grp_seps :
-        optional separators for group boundaries on the structure plot.
-        If None, computed from sorted grps.
-    reorder_cls :
-        if True, place clusters by aligned index.
+    results
+        Clumppling results.
+    coords
+        Coordinates (n_cells, 2).
+    grps
+        Label per cell, used to group cells in the structure plots.
+    modes
+        Mode names; None uses all.
+    cmap
+        Color per cluster (list or colormap); None uses tab20.
+    mode_labels
+        Row labels; None uses the mode names.
+    grp_seps
+        Group separator positions; None computes them from grps.
+    s
+        Marker size.
+    alpha
+        Marker transparency.
+    vmin, vmax
+        Range of the color scale.
+    figsize
+        Figure size; None scales with the grid.
+    dpi
+        Figure resolution.
+
+    Returns
+    -------
+    fig
     """
     if modes is None:
         modes = results.modes
@@ -3066,7 +3066,7 @@ def plot_spatial_structure_grid(
     n_cells = grps_arr.size
 
     # choose Q source
-    Q_source = results.Q_by_mode #results.Q_unaligned_by_mode or 
+    Q_source = results.Q_by_mode
 
     # compute K_max over selected modes (mode_K may be a dict keyed by mode
     # name or a list indexed by position)
@@ -3198,45 +3198,38 @@ def plot_feature_cluster_panels(
     suptitle: str | None = None,
 ):
     """
-    Plot spatial membership for separated clusters for a single focal gene
-    across multiple modes.
+    Memberships of the clusters that one feature separates, in each mode.
 
     Parameters
     ----------
     results
-        Object with `Q_by_mode[mode] -> Q (n_cells, K)`.
-    coords : array-like
-        (n_cells, 2) or (x, y) tuple for spatial / UMAP coordinates.
-    df_pvs_modes : dict[str, pandas.DataFrame]
-        Mapping: mode_name -> DataFrame with index including `selected_feature`
-        and a column 'sepCls' that stores (group0, group1) lists
-        of 0-based cluster indices.
-    selected_feature : str
-        Feature name / index key used in df_pvs_modes[mode].loc[selected_feature].
-    modes : sequence of str, optional
-        Subset / order of modes to plot. Defaults to all keys in df_pvs_modes
-        that contain `selected_feature`.
+        Clumppling results.
+    coords
+        Coordinates (n_cells, 2), or a tuple (x, y).
+    df_pvs_modes
+        {mode name: feature metrics}.
+    selected_feature
+        Feature name.
+    modes
+        Mode names; None uses all modes with the feature.
     colors
-        Either a sequence of colors indexable by cluster index, or a colormap.
-        If None, defaults to tab20.
-    plot_both_sides : bool
-        If False: plot only the “fewer” side clusters across modes in a
-        big [modes × all_sepCls] grid.
-        If True: for each mode, left = sepCls[0], right = sepCls[1],
-        separated by a vertical dashed line.
-    val_threshold : float
-        Membership threshold passed to plot_spatial_membership.
-    w_scale, h_scale : float
-        Width/height scaling factors for figure size.
-    dpi : int
-        Figure DPI.
-    suptitle : str or None
-        Optional figure-level title.
+        Color per cluster (list or colormap); None uses tab20.
+    plot_both_sides
+        Show both sides of each separation (one row per mode); otherwise only the side with fewer clusters.
+    val_threshold
+        Plot only cells with membership above this value.
+    w_scale, h_scale
+        Panel width and height, in inches.
+    dpi
+        Figure resolution.
+    suptitle
+        Figure title.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-    axes : dict[(mode_name, col_idx) -> Axes]
+    fig
+    axes
+        {(mode name, column): Axes}.
     """
 
     # unpack coordinates
@@ -3285,7 +3278,7 @@ def plot_feature_cluster_panels(
     sep_df["sepCls_fewer"] = sep_df["sepCls"].apply(_compute_sepCls_fewer)
 
     if colors is None:
-        base_colors = cm.get_cmap("tab20").colors
+        base_colors = plt.get_cmap("tab20").colors
     else:
         base_colors = colors
 
@@ -3446,7 +3439,7 @@ def plot_feature_cluster_panels(
                 continue
             col = i_sep
             if col >= n_cols:
-                continue  # safety, though it shouldn't happen
+                continue
 
             ax = fig.add_subplot(gs[i_m, col])
             color = _get_color(cls_idx)
@@ -3473,7 +3466,7 @@ def plot_feature_cluster_panels(
                 continue
             col = offset + i_sep
             if col >= n_cols:
-                continue  # safety
+                continue
 
             ax = fig.add_subplot(gs[i_m, col])
             color = _get_color(cls_idx)

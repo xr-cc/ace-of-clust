@@ -16,6 +16,9 @@ from .io import (
     load_gene_intervals,
     filter_bed_by_peaks,
     filter_gene_links_by_ccre,
+    undo_clumppling_regroup,
+    load_clumppling_replicate_Qs,
+    load_clumppling_replicate_Ps,
 )
 from .wrappers import (
     run_clumppling,
@@ -156,6 +159,9 @@ __all__ = [
     "load_gene_intervals",
     "filter_bed_by_peaks",
     "filter_gene_links_by_ccre",
+    "undo_clumppling_regroup",
+    "load_clumppling_replicate_Qs",
+    "load_clumppling_replicate_Ps",
     "subset_results",
     "compute_profile",
     "get_sepLFC",

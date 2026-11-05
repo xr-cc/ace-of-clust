@@ -53,10 +53,13 @@ examples/data/pbmc3k/*
 examples/data/pbmc3k/clustering/hvg_hc_test/
 !examples/data/pbmc3k/aligned/
 !examples/data/pbmc3k/comp_models/
-!examples/data/pbmc3k/gene_sets/B_cell_program.txt
 !examples/data/pbmc3k/reference/
 !examples/data/pbmc3k/scanpy_tutorial_labels.txt
 !examples/data/pbmc3k/scanpy_tutorial_umap.txt
+!examples/data/pbmc3k/gene_sets/
+examples/data/pbmc3k/gene_sets/*
+!examples/data/pbmc3k/gene_sets/B_cell_program.txt
+!examples/data/pbmc3k/gene_sets/README.md
 
 examples/data/pbmc3k/comp_models_old/
 examples/data/pbmc3k/copied/
@@ -86,3 +89,6 @@ examples/data/toy/comp_models/
 
 # hbc: exclude for now
 examples/hbc_st_*
+
+# ── compModels input lists (generated, contain absolute local paths) ─────────
+examples/data/**/*.qfilelist

@@ -1,31 +1,4 @@
-"""
-wrappers.py
-
-Python wrapper(s) around the clumppling CLI.
-
-Usage
------
-run_clumppling(
-    input_dir="/path/to/input",
-    output_dir="/path/to/output",
-    fmt="generalQ",
-    ...
-)
-
-prepare_compmodels(
-    models=["model1", "model2"],
-    model_dirs=["/path/to/model1_dir", "/path/to/model2_dir"],
-    comp_dir="/path/to/comp_dir",
-)
-
-run_comp_models(
-    models=["model1", "model2"],
-    comp_dir="/path/to/comp_dir",
-    output_dir="/path/to/comp_models_output",
-    ...
-)
-
-"""
+"""Wrappers for Clumppling and compModels."""
 
 from __future__ import annotations
 
@@ -77,10 +50,7 @@ def _build_clumppling_args(
     use_rep: bool = True,
     use_best_pair: bool = True,
 ) -> Namespace:
-    """
-    Internal helper: construct an argparse.Namespace with the same fields
-    that clumppling.parse_args() would provide from the CLI.
-    """
+    """Build the argparse.Namespace that Clumppling's command line would produce."""
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
@@ -115,6 +85,7 @@ def _build_clumppling_args(
         merge=merge,
         use_rep=use_rep,
         use_best_pair=use_best_pair,
+        random_seed=None,
     )
     return args
 
@@ -153,32 +124,29 @@ def run_clumppling(
     log_file: Optional[PathLike] = None,
 ) -> Namespace:
     """
-    Programmatic wrapper around `clumppling.main(args)`.
+    Run Clumppling on the clustering runs in one directory.
+
+    Arguments other than those below are Clumppling options of the same name; see `clumppling --help`.
 
     Parameters
     ----------
-    input_dir, output_dir:
-        Directories for clumppling input and output. These correspond to
-        `-i/--input` and `-o/--output` in the CLI.
-    fmt:
-        Input format: one of {"generalQ", "admixture", "structure", "fastStructure"}.
-        This corresponds to `-f/--format`.
-    vis, custom_cmap, plot_type, include_cost, include_label, alt_color, ...
-        All other options map directly to the CLI arguments with the same name.
-        See clumppling's `parse_args()` help text for semantics.
-
-    setup_logging:
-        If True (default), configure the clumppling logger the same way the
-        CLI does, writing to `<output_dir>/clumppling.log` unless `log_file`
-        is provided.
-    log_file:
-        Optional explicit path for the log file.
+    input_dir
+        Directory with the clustering files (-i).
+    output_dir
+        Output directory (-o).
+    fmt
+        Input format (-f): "generalQ", "admixture", "structure" or "fastStructure".
+    setup_logging
+        Write a log, as the command line does.
+    log_file
+        Log file; defaults to output_dir/clumppling.log.
+    vis, custom_cmap, plot_type, include_cost, include_label, alt_color, ind_labels, ordered_uniq_labels, regroup_ind, reorder_within_group, reorder_by_max_k, order_cls_by_label, plot_unaligned, fig_format, extension, skip_rows, remove_missing, cd_method, cd_res, test_comm, comm_min, comm_max, merge, use_rep, use_best_pair
+        Clumppling options.
 
     Returns
     -------
-    args : argparse.Namespace
-        The Namespace object passed into `clumppling.main(args)`.
-        This can be useful for debugging/logging.
+    argparse.Namespace
+        Arguments passed to Clumppling.
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -224,7 +192,6 @@ def run_clumppling(
 
     disp_params(args, title="CLUMPPLING")
 
-    # Call the actual clumppling main
     clumppling_main(args)
 
     return args
@@ -241,47 +208,40 @@ def prepare_compmodels(
     exist_ok: bool = True,
 ) -> Tuple[List[Path], List[Path], List[Path]]:
     """
-    Prepare input files for clumppling.compModels from multiple aligned
-    clumppling runs.
+    Write the compModels input files for several aligned models.
+
     Parameters
     ----------
-    models : sequence of str
-        Model names, e.g. ["model1", "model2"]. These will be used to name the
-        output qfilelist, qnamelist, and mode_stats.txt files.
-    model_dirs : sequence of path-like
-        Directories where each model's clumppling output lives. Each directory
-        should contain a subdirectory `modes_aligned_subdir` (default:
-        "modes_aligned") with the aligned Q files, and a file at
-        `mode_stats_relpath` (default: "modes/mode_stats.txt") with the mode
-        statistics.
-    comp_dir : path-like
-        Directory where the output qfilelist, qnamelist, and mode_stats.txt
-        files will be written.
-    suffixes : sequence of str or None, optional
-        Suffixes of the Q files for each model, either "rep" or "avg". 
-        If None (default), all models are assumed to use the suffix "rep". 
-        The length of this sequence must match the length of `models`.
-    modes_aligned_subdir : str, default "modes_aligned"
-        Subdirectory within each model_dir where the aligned Q files are stored.
-    mode_stats_relpath : str, default "modes/mode_stats.txt"
-        Relative path within each model_dir where the mode_stats.txt file is
-        located.
-    exist_ok : bool, default True
-        If True, do not raise an error if comp_dir already exists.
+    models
+        Model names, used to name the output files.
+    model_dirs
+        Clumppling output directory of each model.
+    comp_dir
+        Directory for the output files.
+    suffixes
+        Suffix of the aligned Q files per model, "rep" or "avg"; None uses "rep" for all.
+    modes_aligned_subdir
+        Subdirectory of each model directory with the aligned Q files.
+    mode_stats_relpath
+        Path of the mode statistics file in each model directory.
+    exist_ok
+        Allow comp_dir to exist already.
+
     Returns
     -------
-    qfilelists : list of Path
-        Paths to the generated qfilelist files, one per model.
-    qnamelists : list of Path
-        Paths to the generated qnamelist files, one per model.
-    mode_stats_files : list of Path
-        Paths to the copied mode_stats.txt files, one per model.
+    qfilelists
+        One .qfilelist file per model.
+    qnamelists
+        One .qnamelist file per model.
+    mode_stats_files
+        One copied mode_stats file per model.
+
     Raises
     ------
     ValueError
-        If the lengths of models, model_dirs, and suffixes do not match.
+        If models, model_dirs and suffixes differ in length.
     FileNotFoundError
-        If expected Q files or mode_stats.txt files are not found.  
+        If Q files or mode_stats files are missing.
     """
     models = list(models)
     model_dirs = [Path(d) for d in model_dirs]
@@ -384,33 +344,34 @@ def run_comp_models(
     log_file: Optional[PathLike] = None,
 ) -> None:
     """
-    Programmatic wrapper around `clumppling.compModels.main(args)`.
+    Run compModels to align and compare several models.
 
     Parameters
     ----------
-    models : sequence of str
-        Model names passed to --models.
-    comp_dir : path-like
-        Directory where the *.qfilelist, *.qnamelist, *_mode_stats.txt live.
-        If qfilelists / qnamelists / mode_stats_files are not provided, they
-        are inferred as:
-            comp_dir/{model}.qfilelist
-            comp_dir/{model}.qnamelist
-            comp_dir/{model}_mode_stats.txt
-    output_dir : path-like
-        Output directory passed to --output.
-    fig_format : str, default "png"
-        Figure format for output files.
-    vis : bool
-        Passed to --vis.
-    custom_cmap : str
-        Passed to --custom_cmap (path to color file or "").
-    bg_colors : sequence of str or None
-        Passed to --bg_colors (list of colors) if given.
-    include_sim_in_label : bool
-        Passed to --include_sim_in_label.
-    ind_labels : str
-        Passed to --ind_labels (path to labels file or "").
+    models
+        Model names (--models).
+    comp_dir
+        Directory with the input files from `prepare_compmodels`.
+    output_dir
+        Output directory (--output).
+    fig_format
+        Figure format.
+    vis
+        Write figures.
+    custom_cmap
+        Color file, or "" for the default colors.
+    bg_colors
+        Background colors, or None.
+    include_sim_in_label
+        Show similarity in figure labels.
+    ind_labels
+        File of cell labels, or "".
+    qfilelists, qnamelists, mode_stats_files
+        Input files per model; None uses comp_dir/{model}.qfilelist, comp_dir/{model}.qnamelist and comp_dir/{model}_mode_stats.txt.
+    setup_logging
+        Write a log, as the command line does.
+    log_file
+        Log file; defaults to output_dir/clumppling.compModels.log.
     """
     comp_dir = Path(comp_dir)
     output_dir = Path(output_dir)
@@ -468,7 +429,6 @@ def run_comp_models(
         # clumppling's setup_logger expects a string path
         setup_logger(str(log_file))
 
-    # Call your patched compModels.main(args)
     compmodels_main(args)
 
 __all__ = [
