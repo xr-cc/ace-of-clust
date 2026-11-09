@@ -5,6 +5,22 @@
 
 Tutorials and API reference for `ace_of_clust`. Source on [GitHub](https://github.com/xr-cc/ace-of-clust).
 
+## Installation
+
+Requires Python 3.9–3.11.
+
+```bash
+pip install ace-of-clust
+```
+
+Optional, to repel overlapping labels in some plots:
+
+```bash
+pip install "ace-of-clust[adjusttext]"
+```
+
+To run the tutorials, install Jupyter and clone the [repository](https://github.com/xr-cc/ace-of-clust) for the example data.
+
 ## Tutorials
 
 - [Quickstart](tutorials/quickstart.ipynb): the minimal steps
