@@ -4,7 +4,7 @@ ACE-OF-Clust (**A**lignment, **C**omparison, and **E**valuation of **O**mics **F
 
 - **PyPI name (install):** `ace-of-clust`
 - **Python import (module):** `ace_of_clust`
-- **Current Version:** 0.3.1
+- **Current Version:** 0.3.2
 - **Last Update:** Nov 2026
 
 Tutorials and API reference: [documentation site](https://xr-cc.github.io/ace-of-clust).
