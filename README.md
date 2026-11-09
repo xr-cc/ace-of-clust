@@ -78,3 +78,5 @@ The raw 10x Genomics datasets below are free to download after registering on th
 ## Bug Reports and Feedback
 
 If you encounter any issues using the tool, have suggestions for additional functions to include in the package, or have general feedback on our method, please contact the author at [xiran_liu1 at brown dot edu](mailto:xiran_liu1@brown.edu).
+
+*Note: Claude (Anthropic) was used to help polish the documentation site and notes.*
